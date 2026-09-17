@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>青甘大环线 · 自驾图鉴 | 景点 · 机位 · 美食 · 住宿</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">青甘</div>
+    <div class="brand-text">
+      <strong>青甘大环线 · 自驾图鉴</strong>
+      <span>13 站 · 机位 · 美食 · 性价比住宿</span>
+    </div>
+  </div>
+  <nav class="nav" id="nav">
+    <a href="#/home" data-tab="home">总览</a>
+    <a href="#/atlas" data-tab="atlas">景点图鉴</a>
+    <a href="#/route" data-tab="route">12 天行程</a>
+    <a href="#/prep" data-tab="prep">出行准备</a>
+  </nav>
+  <div class="topbar-tools">
+    <input id="search" type="search" placeholder="搜索景点 / 美食 / 机位…" autocomplete="off">
+    <button class="btn-ghost" id="wishBtn" title="我的打卡清单">清单 <span id="wishCount">0</span></button>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<footer class="foot">
+  <div class="foot-inner">
+    <p><strong>数据说明：</strong>门票、油价、住宿价格均为 2026 年参考值，旺季（6–8 月、国庆）上浮明显，出行前请以官方渠道当日报价为准。路况信息请拨打青海交通服务热线 <b>12328</b> 或关注「天境祁连」「文旅祁连」公众号复核。</p>
+    <p class="muted">页面生成于 2026-09-17 · 离线可用 · 无外链资源</p>
+  </div>
+</footer>
+
+<!-- 景点详情抽屉 -->
+<div class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-mask" data-close></div>
+  <div class="drawer-panel" role="dialog" aria-modal="true">
+    <button class="drawer-close" data-close aria-label="关闭">×</button>
+    <div class="drawer-body" id="drawerBody"></div>
+  </div>
+</div>
+
+<!-- 清单抽屉 -->
+<div class="drawer" id="wishDrawer" aria-hidden="true">
+  <div class="drawer-mask" data-close></div>
+  <div class="drawer-panel narrow" role="dialog" aria-modal="true">
+    <button class="drawer-close" data-close aria-label="关闭">×</button>
+    <div class="drawer-body" id="wishBody"></div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
