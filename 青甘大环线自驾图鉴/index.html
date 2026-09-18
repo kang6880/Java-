@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>青甘大环线 · 自驾图鉴 | 景点 · 机位 · 美食 · 住宿</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============ 顶栏 ============ -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">青甘</div>
+      <div class="brand-text">
+        <strong>青甘大环线 · 自驾图鉴</strong>
+        <span>14 站 · 机位 · 美食 · 性价比住宿</span>
+      </div>
+    </div>
+    <nav class="nav">
+      <a href="javascript:void(0)" :class="{active: tab==='home'}" @click="setTab('home')">总览</a>
+      <a href="javascript:void(0)" :class="{active: tab==='atlas'}" @click="setTab('atlas')">景点图鉴</a>
+      <a href="javascript:void(0)" :class="{active: tab==='route'}" @click="setTab('route')">12 天行程</a>
+      <a href="javascript:void(0)" :class="{active: tab==='prep'}" @click="setTab('prep')">出行准备</a>
+    </nav>
+    <div class="topbar-tools">
+      <input id="search" type="search" placeholder="搜索景点 / 美食 / 机位…" autocomplete="off"
+             :value="search" @input="onSearch">
+      <button class="btn-ghost" @click="openWish" title="我的打卡清单">清单 <span id="wishCount">{{ wishCount }}</span></button>
+    </div>
+  </header>
+
+  <!-- ============ 总览 ============ -->
+  <main>
+  <div class="wrap" v-show="tab==='home'">
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow">Qinghai · Gansu Loop</span>
+          <h1>把 <em>青海湖的蓝</em>、柴达木的彩池<br>和河西走廊的风，串成一条线</h1>
+          <p class="lead">14 个站点，逐站拆解：怎么玩、在哪拍、吃什么、住哪划算。全部内容离线可用，路上没信号也能翻。</p>
+          <div class="hero-cta">
+            <a class="btn" href="javascript:void(0)" @click="setTab('atlas')">进入景点图鉴 →</a>
+            <a class="btn alt" href="javascript:void(0)" @click="setTab('route')">查看 12 天行程</a>
+          </div>
+          <div class="hero-stats">
+            <div><strong>{{ totalSpots }}</strong><span>站点</span></div>
+            <div><strong>{{ totalPhoto }}</strong><span>打卡机位</span></div>
+            <div><strong>{{ totalFood }}</strong><span>特色美食</span></div>
+            <div><strong>{{ totalBed }}</strong><span>住宿选项</span></div>
+          </div>
+        </div>
+        <div class="hero-art" v-html="genArt('emerald')"></div>
+      </div>
+    </section>
+
+    <section class="section" v-if="ALERT">
+      <div class="note warn">
+        <b>{{ ALERT.title }}</b><br>
+        <span class="muted">封闭期：{{ ALERT.period }}</span>
+        <ul style="margin-top:10px">
+          <li v-for="(l,i) in ALERT.lines" :key="i">· {{ l }}</li>
+        </ul>
+        <ul style="margin-top:8px">
+          <li v-for="(l,i) in ALERT.tips" :key="'t'+i">✔ {{ l }}</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="sec-head"><div><span class="eyebrow">Route Map</span><h2>环线走向</h2></div>
+        <div class="sub">点击地图上的圆点，直接进入该站详情</div></div>
+      <div class="mapbox" @click="onMapClick">
+        <div v-html="genMap()"></div>
+        <div class="map-legend">
+          <span><i style="background:#2F80ED"></i>主线全程</span>
+          <span><i style="background:#C98A2E"></i>深度支线（黑独山 · 茫崖）</span>
+          <span>自驾约 3200 km · 建议 10—12 天</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="sec-head"><div><span class="eyebrow">Popular</span><h2>必看六站</h2></div>
+        <a class="link-more" href="javascript:void(0)" @click="setTab('atlas')">看全部 {{ totalSpots }} 站 →</a></div>
+      <div class="grid cards-3">
+        <spot-card v-for="s in popular" :key="s.id" :spot="s" :in-wish="wish.includes(s.id)"
+                   :art="genArt(s.scene)" @open="openSpot" @toggle-wish="toggleWish"></spot-card>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="grid cards-2">
+        <div class="panel">
+          <h3>为什么是 12 天</h3>
+          <p>全线约 3200 km，若少于 9 天会有大量时间在赶路。12 天能在青海湖、翡翠湖、敦煌、丹霞、祁连各留足时段，还能塞进茫崖支线 — 这是“不后悔”和“到此一游”的分界线。<br>
+          只有 9 天？看 <a href="javascript:void(0)" @click="setRouteMode('compact')" style="color:var(--lake-d);font-weight:600">压缩版行程</a>（异地还车 + 放弃回归段），页面底部还有「茫崖支线决策器」帮你取舍。</p>
+        </div>
+        <div class="panel">
+          <h3>三条硬性提醒</h3>
+          <p>① 莫高窟 A 类票必须提前 30 天早上 7:00 抢；② G227 扁都口—峨堡段 2026-09-01 起封闭到 2027-06-30，绕行走 S302 + G213；③ U 型公路拍照严禁站路面，近年已发生多起伤亡事故。</p>
+        </div>
+        <div class="panel">
+          <h3>新增 · 黑独山（冷湖）</h3>
+          <p>茫崖市冷湖镇旁的黑色戈壁山丘，号称“地球上最像月球的地方”。<b>2025 年 5 月已正式开放景区</b>：免大门票，但自驾车禁入核心区，须换乘景区接驳大巴（60 元/人往返），仅约 0.61% 的区域开放栈道游览。<br>
+          <a href="javascript:void(0)" @click="goSpot('heidushan')" style="color:var(--lake-d);font-weight:600">查看黑独山完整攻略 →</a></p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ 景点图鉴 ============ -->
+  <div class="wrap" v-show="tab==='atlas'">
+    <div class="sec-head"><div><span class="eyebrow">Atlas</span><h2>景点图鉴 · {{ totalSpots }} 站</h2></div>
+      <div class="sub">点任意卡片，展开该站的风景看点 / 打卡机位 / 特色美食 / 性价比住宿</div></div>
+    <div class="chips">
+      <button class="chip" v-for="r in regions" :key="r" :class="{active: region===r}" @click="setRegion(r)">{{ r }}</button>
+    </div>
+    <div class="result-bar">{{ resultText }}</div>
+    <div class="grid cards-3">
+      <spot-card v-for="s in atlasList" :key="s.id" :spot="s" :in-wish="wish.includes(s.id)"
+                 :art="genArt(s.scene)" @open="openSpot" @toggle-wish="toggleWish"></spot-card>
+      <p v-if="atlasList.length===0" style="grid-column:1/-1" class="muted">没有匹配的结果，试试“日出”“牛肉面”“机位”“住宿”。</p>
+    </div>
+  </div>
+
+  <!-- ============ 12 天 / 9 天 行程 ============ -->
+  <div class="wrap" v-show="tab==='route'">
+    <div class="sec-head"><div><span class="eyebrow">Itinerary</span><h2>{{ routeMode==='compact' ? '9 天压缩行程' : '12 天自驾行程' }}</h2></div>
+      <div class="sub">橙色标记为可选支线，时间紧可直接跳过</div></div>
+    <div class="chips">
+      <button class="chip" :class="{active: routeMode!=='compact'}" @click="setRouteMode('full')">12 天经典环线（往返西宁）</button>
+      <button class="chip" :class="{active: routeMode==='compact'}" @click="setRouteMode('compact')">9 天压缩版（异地还车）</button>
+    </div>
+    <div class="note ok"><b>行程说明：</b>
+      <template v-if="routeMode==='compact'">以“西宁取车 — 张掖/机场异地还车”为准，绕过封路回归段。日均车程较 12 天版更长，D6 是全程最赶的一天，请务必 8:30 前出发。</template>
+      <template v-else>以“西宁取车 — 西宁还车”为准，日均车程控制在 4 小时内；D6 茫崖支线需四驱越野，放弃则全天可在水上雅丹—大柴旦之间休整。</template>
+    </div>
+
+    <section class="section" v-if="routeMode==='compact' && COMPACT_NOTE">
+      <div class="note warm">
+        <b>{{ COMPACT_NOTE.title }}</b>
+        <ul style="margin-top:10px">
+          <li v-for="(i,idx) in COMPACT_NOTE.items" :key="idx">· {{ i }}</li>
+        </ul>
+        <ul style="margin-top:8px">
+          <li v-for="(i,idx) in COMPACT_NOTE.keep" :key="'k'+idx">✔ {{ i }}</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="timeline">
+        <div class="tl-item" v-for="d in routeDays" :key="d.d" :class="{deep: d.open}">
+          <div class="tl-card">
+            <div class="tl-top">
+              <span class="tl-day">{{ d.d }}</span>
+              <span class="tl-title">{{ d.t }}</span>
+              <span class="tl-km">{{ d.km }}</span>
+            </div>
+            <div class="tl-route">🚗 {{ d.rt }}</div>
+            <ul class="tl-list">
+              <li v-for="(i,idx) in d.li" :key="idx">{{ i }}</li>
+            </ul>
+            <span class="tl-night">🏨 {{ d.night }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 茫崖支线决策器 -->
+    <section class="section" v-if="MANGYA_QUIZ">
+      <div class="sec-head"><div><span class="eyebrow">Decision</span><h2>支线取舍：茫崖到底去不去</h2></div>
+        <div class="sub">4 个问题，答完自动给结论</div></div>
+      <div class="mapbox">
+        <p style="font-size:14px;color:var(--ink-2);margin-bottom:18px">{{ MANGYA_QUIZ.intro }}</p>
+        <div class="quiz">
+          <div class="quiz-q" v-for="(item,i) in MANGYA_QUIZ.qs" :key="i">
+            <div class="qq-title"><b>Q{{ i+1 }}</b> {{ item.q }}</div>
+            <div class="quiz-opts">
+              <button class="qbtn yes" :class="{on: quiz[i]===1}" @click="toggleQuiz(i,1)">能满足</button>
+              <button class="qbtn no" :class="{on: quiz[i]===0}" @click="toggleQuiz(i,0)">不满足 / 不确定</button>
+            </div>
+            <div class="qq-why">💡 {{ item.why }}</div>
+          </div>
+        </div>
+        <div class="verdict" :class="quizVerdict ? quizVerdict.color : ''" style="margin-top:18px">
+          <div class="v-head">{{ quizPending ? ('已答 ' + (MANGYA_QUIZ.qs.length - quizPending) + '/' + MANGYA_QUIZ.qs.length + ' 题 · 当前得分 ' + quizScore) : ('你的得分：' + quizScore + ' / 4') }}</div>
+          <div class="v-lv">{{ quizPending ? '继续作答以得出结论' : quizVerdict.lv }}</div>
+          <p>{{ quizPending ? '结论会在 4 题全部作答后给出。' : quizVerdict.text }}</p>
+        </div>
+        <div class="sub" style="margin-top:16px">不想去茫崖时，这两天更好的去向：</div>
+        <ul class="tl-list" style="margin-top:8px">
+          <li v-for="(a,idx) in MANGYA_QUIZ.alt" :key="idx">{{ a }}</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ 出行准备 ============ -->
+  <div class="wrap" v-show="tab==='prep'">
+    <div class="sec-head"><div><span class="eyebrow">Preparation</span><h2>出行准备</h2></div>
+      <div class="sub">抢票时间线 · 装备清单 · 自驾合规 · 预算测算</div></div>
+
+    <div class="note warn"><b>三条最容易翻车的事：</b>莫高窟没抢到票 / G227 走到封路路段 / 大柴旦与黑马河旺季无房。请在出发前逐条确认。</div>
+
+    <section class="section">
+      <h3 style="font-size:19px;margin-bottom:12px">门票与抢票时间线</h3>
+      <div class="panel" style="padding:0;overflow:hidden">
+        <table class="tbl">
+          <thead><tr><th style="width:20%">项目</th><th style="width:26%">时间节点</th><th style="width:24%">渠道</th><th>备注</th></tr></thead>
+          <tbody>
+            <tr v-for="(b,i) in BOOKING" :key="i"><td><b>{{ b.item }}</b></td><td>{{ b.when }}</td><td>{{ b.where }}</td><td class="muted">{{ b.note }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h3 style="font-size:19px;margin-bottom:12px">装备清单</h3>
+      <div class="grid cards-3">
+        <div class="panel" v-for="(g,i) in GEAR" :key="i">
+          <h3>{{ g.t }}</h3>
+          <ul class="tl-list">
+            <li v-for="(it,j) in g.i" :key="j">{{ it }}</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h3 style="font-size:19px;margin-bottom:12px">自驾与合规要点</h3>
+      <div class="grid cards-2">
+        <div class="panel" v-for="(d,i) in DRIVE" :key="i"><h3>{{ d.t }}</h3><p>{{ d.d }}</p></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h3 style="font-size:19px;margin-bottom:12px">预算参考（2 人自驾 · 12 天）</h3>
+      <div class="panel" style="padding:0;overflow:hidden">
+        <table class="tbl">
+          <thead><tr><th>项目</th><th style="width:16%">金额（元）</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr v-for="(b,i) in BUDGET" :key="i"><td><b>{{ b.k }}</b></td><td class="num">{{ Number(b.v).toLocaleString() }}</td><td class="muted">{{ b.note }}</td></tr>
+            <tr><td><b>合计</b></td><td class="num"><b>{{ budgetSum.toLocaleString() }}</b></td><td class="muted">人均约 {{ Math.round(budgetSum/2).toLocaleString() }} 元（旺季中端标准）</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note" style="margin-top:14px">预算不含往返大交通（机票/高铁）。若压缩到 9 天 2 人，可省约 2 天租车油费 + 2 晚住宿，约合 1800—2500 元。</div>
+    </section>
+  </div>
+  </main>
+
+  <!-- ============ 页脚 ============ -->
+  <footer class="foot">
+    <div class="foot-inner">
+      <p><strong>数据说明：</strong>门票、油价、住宿价格均为 2026 年参考值，旺季（6–8 月、国庆）上浮明显，出行前请以官方渠道当日报价为准。路况信息请拨打青海交通服务热线 <b>12328</b> 或关注「天境祁连」「文旅祁连」公众号复核。</p>
+      <p class="muted">页面生成于 2026-09-17 · 离线可用 · 无外链资源</p>
+    </div>
+  </footer>
+
+  <!-- ============ 景点详情抽屉 ============ -->
+  <div class="drawer" :class="{open: drawerSpot}" :aria-hidden="!drawerSpot">
+    <div class="drawer-mask" @click="closeDrawer"></div>
+    <div class="drawer-panel" role="dialog" aria-modal="true">
+      <button class="drawer-close" @click="closeDrawer" aria-label="关闭">×</button>
+      <div class="drawer-body" v-if="drawerSpot">
+        <div class="dt-hero">
+          <div v-html="genArt(drawerSpot.scene)"></div>
+          <div class="dt-title"><h2>{{ drawerSpot.name }}</h2><span>{{ drawerSpot.region }} · {{ drawerSpot.en }} · 行程 {{ drawerSpot.day }}</span></div>
+        </div>
+        <div class="dt-inner">
+          <div class="dt-meta">
+            <div v-for="(v,k) in drawerSpot.meta" :key="k"><dl><dt>{{ k }}</dt><dd>{{ v }}</dd></dl></div>
+          </div>
+          <p style="font-size:14.5px;color:var(--ink-2);margin-bottom:18px" v-html="drawerSpot.intro.join('<br><br>')"></p>
+          <div class="switch-row" style="margin-bottom:26px">
+            <button class="wish-btn" style="padding:9px 16px;font-size:13px"
+                    :class="{on: wish.includes(drawerSpot.id)}" @click="toggleWish(drawerSpot.id)">
+              {{ wish.includes(drawerSpot.id) ? '✓ 已在打卡清单' : '+ 加入打卡清单' }}</button>
+            <button class="wish-btn" style="padding:9px 16px;font-size:13px" @click="copySpot">复制本站速查</button>
+          </div>
+
+          <div class="dt-nav">
+            <a href="javascript:void(0)" @click="anchorTo('blk-view')">风景看点</a>
+            <a href="javascript:void(0)" @click="anchorTo('blk-photo')">打卡机位 {{ drawerSpot.photoSpots.length }}</a>
+            <a href="javascript:void(0)" @click="anchorTo('blk-food')">特色美食 {{ drawerSpot.foods.length }}</a>
+            <a href="javascript:void(0)" @click="anchorTo('blk-bed')">性价比住宿 {{ drawerSpot.stays.length }}</a>
+            <a href="javascript:void(0)" @click="anchorTo('blk-tip')">实用贴士</a>
+          </div>
+
+          <div class="blk" id="blk-view">
+            <h3>风景看点</h3><div class="hint">这一站最值得把时间花在哪</div>
+            <ul class="numlist">
+              <li v-for="(h,i) in drawerSpot.highlights" :key="i"><span class="idx">{{ i+1 }}</span><div><h4>{{ h.t }}</h4><p>{{ h.d }}</p></div></li>
+            </ul>
+          </div>
+
+          <div class="blk" id="blk-photo">
+            <h3>打卡机位</h3><div class="hint">机位位置 · 最佳时间 · 器材与拍摄建议</div>
+            <ul class="numlist">
+              <li v-for="(p,i) in drawerSpot.photoSpots" :key="i"><span class="idx">{{ i+1 }}</span>
+                <div><h4>{{ p.n }}</h4><p>{{ p.p }}</p>
+                <div class="kv"><span class="k">⏰ {{ p.time }}</span><span>📷 {{ p.g }}</span></div></div></li>
+            </ul>
+          </div>
+
+          <div class="blk food" id="blk-food">
+            <h3>特色美食</h3><div class="hint">括号内为参考人均价格</div>
+            <div class="food-grid">
+              <div class="food-item" v-for="(f,i) in drawerSpot.foods" :key="i">
+                <div class="top"><h4>{{ f.n }}</h4><span class="price">{{ f.p }}</span></div>
+                <p>{{ f.d }}</p><div class="where">📍 {{ f.w }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="blk bed" id="blk-bed">
+            <h3>性价比住宿</h3><div class="hint">按“价格 / 位置 / 条件”三维给出建议，均为参考价</div>
+            <div class="bed-list">
+              <div class="bed-item" v-for="(st,i) in drawerSpot.stays" :key="i">
+                <div class="top"><h4>{{ st.n }}</h4><span class="price">{{ st.p }}</span><span class="lv">{{ st.lv }}</span></div>
+                <p>{{ st.d }}</p>
+                <div class="cond">
+                  <span class="good"><b>优势：</b>{{ st.good }}</span>
+                  <span class="bad"><b>短板：</b>{{ st.bad }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="blk tip" id="blk-tip">
+            <h3>实用贴士</h3><div class="hint">前人踩过的坑，能省就是省</div>
+            <ul class="numlist">
+              <li v-for="(t,i) in drawerSpot.tips" :key="i"><span class="idx">{{ i+1 }}</span><div><p>{{ t }}</p></div></li>
+            </ul>
+          </div>
+
+          <div class="switch-row" style="border-top:1px dashed var(--line);padding-top:18px">
+            <button class="btn alt" v-if="prevSpot" @click="openSpot(prevSpot.id)">← {{ prevSpot.name }}</button>
+            <button class="btn alt" v-if="nextSpot" @click="openSpot(nextSpot.id)">{{ nextSpot.name }} →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 清单抽屉 ============ -->
+  <div class="drawer" :class="{open: wishOpen}" :aria-hidden="!wishOpen">
+    <div class="drawer-mask" @click="closeWish"></div>
+    <div class="drawer-panel narrow" role="dialog" aria-modal="true">
+      <button class="drawer-close" @click="closeWish" aria-label="关闭">×</button>
+      <div class="drawer-body" v-if="wishOpen">
+        <div class="wish-body">
+          <h3>我的打卡清单 <span class="muted" style="font-size:14px">{{ wish.length }} 站</span></h3>
+          <p class="muted" style="font-size:13px">用于行前核对，清单保存在本机浏览器中。</p>
+          <template v-if="wish.length">
+            <div class="wish-item" v-for="id in wish" :key="id">
+              <span class="n">{{ byId(id) ? byId(id).name : id }} <span class="muted" style="font-size:12px" v-if="byId(id)">· {{ byId(id).day }}</span></span>
+              <button class="wish-del" @click="toggleWish(id)" title="移除">✕</button>
+            </div>
+          </template>
+          <p v-else class="muted" style="margin-top:16px">还没有添加。在任意景点卡片或详情页点击「+ 清单」即可。</p>
+          <div class="switch-row">
+            <button class="btn" @click="copyWish">复制为文字清单</button>
+            <button class="btn alt" @click="clearWish">清空</button>
+            <button class="btn alt" @click="printWish">打印</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 复制提示 ============ -->
+  <div class="copytoast" :class="{show: toastMsg}">{{ toastMsg }}</div>
+
+</div><!-- /#app -->
+
+<!-- 子组件模板 -->
+<script type="text/x-template" id="spot-card-tpl">
+  <article class="card" @click="$emit('open', spot.id)">
+    <div class="card-art">
+      <div v-html="art" style="position:absolute;inset:0"></div>
+      <span class="card-day">{{ spot.day }}</span>
+    </div>
+    <div class="card-body">
+      <h3>{{ spot.name }}</h3>
+      <div class="loc">{{ spot.region }} · {{ spot.en }}</div>
+      <div class="tagrow">
+        <span class="tag" v-for="t in spot.tags.slice(0,3)" :key="t">{{ t }}</span>
+      </div>
+      <p class="desc">{{ spot.tagline }}</p>
+      <div class="card-foot">
+        <span class="price">门票参考 <b>{{ spot.meta['门票'] }}</b></span>
+        <button class="wish-btn" :class="{on: inWish}" @click.stop="$emit('toggle-wish', spot.id)">{{ inWish ? '已加入' : '+ 清单' }}</button>
+      </div>
+    </div>
+  </article>
+</script>
+
+<script src="js/vue.global.prod.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
