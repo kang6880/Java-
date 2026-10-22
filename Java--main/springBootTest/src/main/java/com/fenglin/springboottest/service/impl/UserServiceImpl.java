@@ -93,4 +93,36 @@ public class UserServiceImpl implements UserService {
         update.setPassword(passwordEncoder.encode(rawPassword));
         userMapper.updateById(update);
     }
+
+    @Override
+    public User profile(String username) {
+        User user = userMapper.selectOne(
+                new LambdaQueryWrapper<User>().eq(User::getUsername, username));
+        if (user == null) {
+            throw new BizException("名册中查无此人");
+        }
+        user.setPassword(null);
+        return user;
+    }
+
+    @Override
+    public void changePassword(String username, String oldPassword, String newPassword) {
+        // 1. 按代号查用户
+        User user = userMapper.selectOne(
+                new LambdaQueryWrapper<User>().eq(User::getUsername, username));
+        if (user == null) {
+            throw new BizException("名册中查无此人");
+        }
+
+        // 2. 验证当前密钥
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new BizException("当前船舱密钥不正确");
+        }
+
+        // 3. BCrypt 加密新密钥后更新
+        User update = new User();
+        update.setId(user.getId());
+        update.setPassword(passwordEncoder.encode(newPassword));
+        userMapper.updateById(update);
+    }
 }

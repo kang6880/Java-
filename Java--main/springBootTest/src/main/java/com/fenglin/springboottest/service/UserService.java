@@ -34,4 +34,21 @@ public interface UserService {
      * @param rawPassword 新密钥明文
      */
     void resetPassword(String username, String email, String rawPassword);
+
+    /**
+     * 查询船员档案（按代号实时调取）
+     *
+     * @param username 航海士代号（已去空格）
+     * @return 用户对象（不含密钥密文）
+     */
+    User profile(String username);
+
+    /**
+     * 修改船舱密钥（验证旧密钥后更换）
+     *
+     * @param username    航海士代号（已去空格）
+     * @param oldPassword 当前密钥明文
+     * @param newPassword 新密钥明文
+     */
+    void changePassword(String username, String oldPassword, String newPassword);
 }
