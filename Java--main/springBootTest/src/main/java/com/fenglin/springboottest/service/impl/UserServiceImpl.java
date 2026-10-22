@@ -54,10 +54,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User login(String username, String rawPassword) {
-        // 1. 按代号查用户（数据库 username 有唯一索引，最多一条）
+    public User login(String account, String rawPassword) {
+        // 1. 按代号或邮箱查用户（两列都有唯一索引，最多一条）
         User user = userMapper.selectOne(
-                new LambdaQueryWrapper<User>().eq(User::getUsername, username));
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getUsername, account)
+                        .or()
+                        .eq(User::getEmail, account));
 
         // 2. 统一提示「代号或密钥不正确」，不区分是哪种错，避免暴露账号是否存在
         if (user == null) {
@@ -71,5 +74,23 @@ public class UserServiceImpl implements UserService {
 
         user.setPassword(null);
         return user;
+    }
+
+    @Override
+    public void resetPassword(String username, String email, String rawPassword) {
+        // 1. 按代号查用户
+        User user = userMapper.selectOne(
+                new LambdaQueryWrapper<User>().eq(User::getUsername, username));
+
+        // 2. 代号 + 绑定邮箱双重验证（忽略邮箱大小写），不匹配时统一拒绝，避免泄露账号信息
+        if (user == null || !user.getEmail().equalsIgnoreCase(email)) {
+            throw new BizException("代号与绑定邮箱不匹配，罗宾小姐拒绝为你重置");
+        }
+
+        // 3. 设置新密钥（BCrypt 加密后更新）
+        User update = new User();
+        update.setId(user.getId());
+        update.setPassword(passwordEncoder.encode(rawPassword));
+        userMapper.updateById(update);
     }
 }
