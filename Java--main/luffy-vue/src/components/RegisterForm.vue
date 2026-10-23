@@ -1,5 +1,6 @@
 <script setup>
 import { ref, reactive, computed } from 'vue'
+import { userApi } from '../api/user.js'
 
 const emit = defineEmits(['success'])
 
@@ -86,7 +87,7 @@ function validate(){
   return ok
 }
 
-function onSubmit(){
+async function onSubmit(){
   if (btnState.value !== 'idle') return
 
   if (!validate()){
@@ -99,13 +100,23 @@ function onSubmit(){
     return
   }
 
-  // 阶段一：加载（此处可替换为真实接口请求）
+  // 调用后端 POST /api/user/register
   btnState.value = 'loading'
-  setTimeout(() => {
-    // 阶段二：成功
+  tipWarning.value = ''
+  try {
+    const user = await userApi.register({
+      username: username.value.trim(),
+      email: email.value.trim(),
+      password: pwd.value
+    })
     btnState.value = 'success'
-    emit('success', username.value.trim())
-  }, 1600)
+    emit('success', (user && user.username) || username.value.trim())
+  } catch (e) {
+    btnState.value = 'idle'
+    // 统一展示后端返回的中文提示（如「代号已被占用」「邮箱已登记」）
+    tipWarning.value = e.message
+    shakeCard()
+  }
 }
 
 /* 弹层关闭后重置整个表单 */

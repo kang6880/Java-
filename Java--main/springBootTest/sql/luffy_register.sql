@@ -1,11 +1,22 @@
 -- ============================================================
--- 航海王 · 船员招募登记 —— 数据库初始化脚本
--- 前端页面：Desktop/luffy-register-vue（Vue3 + Vite）
--- 后端接口：POST /api/user/register
+-- 航海王 · 船员名册 —— 数据库初始化脚本
+-- 后端：springBootTest（Spring Boot 3 + MyBatis-Plus）端口 8081
+-- 前端：luffy-vue（Vue3 + Vite）/ Luffy.html（单文件页）
 -- 字符集：utf8mb4（支持中文与 emoji）
--- 执行方式：
---   mysql -uroot -p123456 --default-character-set=utf8mb4 < luffy_register.sql
--- 或在 Navicat / IDEA Database 中直接运行本文件
+--
+-- 【执行方式】
+--   1) 命令行：mysql -uroot -p123456 --default-character-set=utf8mb4 < luffy_register.sql
+--   2) Navicat / IDEA Database 中打开本文件直接运行
+--   3) 没有 mysql 客户端时，可用任意支持 JDBC 的方式执行
+--
+-- 【注意】脚本含 DROP TABLE IF EXISTS sys_user，重复执行会清空已注册的船员数据。
+--        只想补建库表、不想动数据时，请把第 3 段的 DROP / CREATE 跳过。
+--
+-- 【接口映射】
+--   POST /api/user/register  注册        -> INSERT sys_user
+--   POST /api/user/login     登录        -> SELECT by username / email
+--   POST /api/user/reset     重置密钥    -> UPDATE password（代号 + 邮箱双重验证）
+--   GET  /api/user/profile   查询档案    -> SELECT by username（需 X-Token）
 -- ============================================================
 
 -- 1. 创建数据库（若不存在）
