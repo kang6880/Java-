@@ -17,11 +17,12 @@ public class WebConfig implements WebMvcConfigurer {
     @Autowired
     private LoginInterceptor loginInterceptor;
 
-    /** 需要登录态的接口：档案查询、修改密钥、退出登船（注册/登录/重置不拦截） */
+    /** 需要登录态的接口：档案查询、修改密钥、退出登船、首页展示与搜索（注册/登录/重置不拦截） */
     private static final String[] PROTECTED_PATHS = {
             "/api/user/profile",
             "/api/user/change-password",
-            "/api/user/logout"
+            "/api/user/logout",
+            "/api/home/**"
     };
 
     @Override

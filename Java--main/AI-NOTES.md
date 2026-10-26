@@ -16,7 +16,7 @@ Java--main/
 
 ## 一、最快启动方式（优先推荐）
 
-让用户双击 `C:\Users\Administrator\Desktop\Java--main\` 下的脚本（GBK 编码，相对路径，重置后可用）：
+让用户双击 `D:\workSpace\Java-\Java--main\` 下的脚本（GBK 编码，相对路径，重置后可用）：
 
 | 脚本 | 作用 |
 |------|------|
@@ -30,10 +30,10 @@ Java--main/
 
 1. **构建后端**：`mvnw` 在 Git Bash 下有 bug（classworlds Launcher 找不到），**不要用 mvnw**。用 java 直调：
    ```
-   cd C:/Users/Administrator/Desktop/Java--main/backend-8081
+   cd D:/workSpace/Java-/Java--main/backend-8081
    D=C:/Users/Administrator/.m2/wrapper/dists/apache-maven-3.9.16-bin/5grr65jo27hi51sujmtcldfovl/apache-maven-3.9.16
    java -cp "$D/boot/plexus-classworlds-2.11.0.jar" -Dclassworlds.conf="$D/bin/m2.conf" \
-     -Dmaven.home="$D" -Dmaven.multiModuleProjectDirectory="C:/Users/Administrator/Desktop/Java--main/backend-8081" \
+     -Dmaven.home="$D" -Dmaven.multiModuleProjectDirectory="D:/workSpace/Java-/Java--main/backend-8081" \
      org.codehaus.plexus.classworlds.launcher.Launcher -s maven-settings.xml -DskipTests package
    ```
    （若 $D 不存在，mvnw.cmd 会从阿里云自动下载发行版；maven-wrapper.properties 已改为阿里云源）
@@ -53,12 +53,16 @@ Java--main/
 - **luffy_register.sql 含 DROP TABLE**：重跑清空所有注册数据。
 - **taskkill 在 Git Bash**：用 `taskkill /F /PID xxx`（单斜杠），`//F` 反而报错。
 - **改 bat 必须保持 GBK 编码**：先写 UTF-8 再 `iconv -f UTF-8 -t GBK` 转换，直接编辑 GBK 文件会写坏中文。
+- **重新打包前先停 8081 后端**：进程锁住 target jar，Maven repackage 会报 "Unable to rename"。
+- **改后端代码后必须重启 java -jar**：跑的是打包产物，改源码不重启等于没改。
+- **curl 测中文参数**：用 `-G --data-urlencode "keyword=xx"`，裸中文进 URL 会被 Tomcat 拒（400 Invalid character）。
 
 ## 四、架构速查
 
-- 后端：backend-8081/，Spring Boot 3.4.5 + MyBatis-Plus，profile=dev（application-dev.properties，端口 8081，MySQL root/123456，库 springboottest，表 sys_user）。
-- 接口：POST /api/user/register | /login | /reset；GET /api/user/profile（需 X-Token）。
+- 后端：backend-8081/，Spring Boot 3.4.5 + MyBatis-Plus，profile=dev（application-dev.properties，端口 8081，MySQL root/123456，库 springboottest）。
+- 用户表：sys_user（接口：POST /api/user/register | /login | /reset；GET /api/user/profile；POST /api/user/change-password | /logout，后三者需 X-Token）。
+- 首页（2026-10-26 新增）：表 home_route（航线）、home_wanted（悬赏令），建表脚本 home_init.sql（顶层正本，可重复执行不清数据）；接口 GET /api/home/summary（首页统计+榜单）、GET /api/home/search?keyword=（航线/悬赏/船员三路搜索），均需 X-Token（WebConfig 保护 /api/home/**）。
 - 单文件页：frontend-5173/Luffy.html（同源访问 /api；file:// 时直连 8081）。另有内置副本 backend-8081/src/main/resources/static/Luffy.html。
-- Vue 前端：frontend-5173/，Vite 代理 /api → 8081（vite.config.js 已配好），API 封装在 src/api/user.js。
+- Vue 前端：frontend-5173/，Vite 代理 /api → 8081（vite.config.js 已配好）；API 封装 src/api/user.js（request 已支持完整 /api 路径复用）与 src/api/home.js；首页组件 src/components/HomePage.vue（含统计、真实榜单卡片、搜索结果面板）。
 - 演示账号：路飞 / 123456（luffy@onepiece.com）。
-- 历史遗留副本（LoginInterceptor.java、user.js、_target_backup、sql/、backend 根下 luffy_register.sql）已于 2026-10-23 清理；SQL 唯一正本在 Java--main 顶层。log/ 为运行日志，勿删。
+- 历史遗留副本（LoginInterceptor.java、user.js、_target_backup、sql/、backend 根下 luffy_register.sql）已于 2026-10-23 清理；SQL 正本在 Java--main 顶层（luffy_register.sql 管 sys_user，home_init.sql 管首页两表）。luffy-vue/ 是无登录功能的旧副本，勿在其上开发。log/ 为运行日志，勿删。

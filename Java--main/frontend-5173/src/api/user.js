@@ -49,12 +49,12 @@ export function clearAuth () {
 /* ---------------- 底层请求 ---------------- */
 
 /**
- * 发起一次请求并拆包 Result
- * @param {string} path  相对 /api/user 的路径，例如 '/register'
+ * 发起一次请求并拆包 Result（供本模块与 home.js 等复用）
+ * @param {string} path  完整的 /api 相对路径，例如 '/user/login'
  * @param {object} options { method, body, auth }
  * @returns {Promise<any>} 成功时返回 Result.data
  */
-async function request (path, { method = 'GET', body, auth = false } = {}) {
+export async function request (path, { method = 'GET', body, auth = false } = {}) {
   const headers = {}
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json'
@@ -67,7 +67,9 @@ async function request (path, { method = 'GET', body, auth = false } = {}) {
 
   let res
   try {
-    res = await fetch(BASE_URL + path, {
+    // 已带 /api 前缀的完整路径直接使用（供 home.js 等其他模块复用），否则默认挂在 /api/user 下
+    const url = path.startsWith('/api') ? path : BASE_URL + path
+    res = await fetch(url, {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body)
