@@ -17,6 +17,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Autowired
     private LoginInterceptor loginInterceptor;
 
+    @Autowired
+    private AdminLoginInterceptor adminLoginInterceptor;
+
     /** 需要登录态的接口：档案查询、修改密钥、退出登船、首页展示与搜索（注册/登录/重置不拦截） */
     private static final String[] PROTECTED_PATHS = {
             "/api/user/profile",
@@ -29,6 +32,11 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginInterceptor)
                 .addPathPatterns(PROTECTED_PATHS);
+
+        // 后台接口统一守卫，登录接口自身排除在外
+        registry.addInterceptor(adminLoginInterceptor)
+                .addPathPatterns("/api/admin/**")
+                .excludePathPatterns("/api/admin/login");
     }
 
     @Override

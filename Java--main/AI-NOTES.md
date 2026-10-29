@@ -56,12 +56,15 @@ Java--main/
 - **重新打包前先停 8081 后端**：进程锁住 target jar，Maven repackage 会报 "Unable to rename"。
 - **改后端代码后必须重启 java -jar**：跑的是打包产物，改源码不重启等于没改。
 - **curl 测中文参数**：用 `-G --data-urlencode "keyword=xx"`，裸中文进 URL 会被 Tomcat 拒（400 Invalid character）。
+- **前端缺 src/api/home.js 会整站白屏**：HomePage.vue import 了它，缺失时 Vite 直接报错、页面渲染为空。排查顺序：先看 `curl http://localhost:5173/src/components/HomePage.vue` 是否 200。
+- **agent-browser 在本机的坑**（2026-10-29 实测）：① 会话在命令之间易丢，页面变 about:blank 且 localStorage 报 SecurityError，验证必须把 open→操作→eval 串在同一条 bash 命令里；② 截图全白（Chrome 156 GPU 合成问题），别靠截图判断页面，改用 `agent-browser eval "document.body.innerText"` 读 DOM 文本；③ `snapshot -i` 返回空，直接用 CSS 选择器（#lAccount / #lPwd / #lBtn / .search input / .search-btn / .result-item.clickable）；④ Vue 异步更新，点击后要 sleep 1 再 eval，否则会误判弹窗没关。
 
 ## 四、架构速查
 
 - 后端：backend-8081/，Spring Boot 3.4.5 + MyBatis-Plus，profile=dev（application-dev.properties，端口 8081，MySQL root/123456，库 springboottest）。
 - 用户表：sys_user（接口：POST /api/user/register | /login | /reset；GET /api/user/profile；POST /api/user/change-password | /logout，后三者需 X-Token）。
-- 首页（2026-10-26 新增）：表 home_route（航线）、home_wanted（悬赏令），建表脚本 home_init.sql（顶层正本，可重复执行不清数据）；接口 GET /api/home/summary（首页统计+榜单）、GET /api/home/search?keyword=（航线/悬赏/船员三路搜索），均需 X-Token（WebConfig 保护 /api/home/**）。
+- 首页（2026-10-26 新增，2026-10-29 补齐后端+详情弹窗）：表 home_route（航线）、home_wanted（悬赏令），建表脚本 home_init.sql（顶层正本，CREATE IF NOT EXISTS + INSERT IGNORE，可重复执行不清数据）；接口 GET /api/home/summary（首页统计+榜单）、GET /api/home/search?keyword=（航线/悬赏/船员三路搜索），均需 X-Token（WebConfig 保护 /api/home/**）。后端实现：controller/HomeController.java + entity/HomeRoute|HomeWanted + mapper/HomeRouteMapper|HomeWantedMapper。
+- 首页交互（2026-10-29）：搜索结果与首页榜单卡片均可点击，弹出详情（航线详情卡 / 悬赏令海报 / 船员档案），数据全部来自后端真实数据；Esc 或点遮罩关闭。样式在 src/style.css「可点击条目 + 详情弹窗」段。
 - 单文件页：frontend-5173/Luffy.html（同源访问 /api；file:// 时直连 8081）。另有内置副本 backend-8081/src/main/resources/static/Luffy.html。
 - Vue 前端：frontend-5173/，Vite 代理 /api → 8081（vite.config.js 已配好）；API 封装 src/api/user.js（request 已支持完整 /api 路径复用）与 src/api/home.js；首页组件 src/components/HomePage.vue（含统计、真实榜单卡片、搜索结果面板）。
 - 演示账号：路飞 / 123456（luffy@onepiece.com）。

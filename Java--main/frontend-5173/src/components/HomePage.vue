@@ -1,33 +1,53 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { getProfile, clearAuth, userApi } from '../api/user.js'
-import { homeApi, formatBounty } from '../api/home.js'
+import { homeApi, formatBounty, formatNumber } from '../api/home.js'
 import SeaScene from './SeaScene.vue'
+import CrewPanel from './CrewPanel.vue'
+import RoutePanel from './RoutePanel.vue'
+import WantedPanel from './WantedPanel.vue'
+import ShopPanel from './ShopPanel.vue'
+import StoryPanel from './StoryPanel.vue'
 
-const emit = defineEmits(['logout'])
+const emit = defineEmits(['logout', 'open-admin'])
 
 const profile = getProfile()
 const username = computed(() => (profile && profile.username) || '船长')
 
 /* ---------- 导航 ---------- */
-const menus = ['首页', '船员名册', '航线图鉴', '悬赏令', '杂货小镇']
+const menus = [
+  { name: '首页', comp: null },
+  { name: '船员名册', comp: 'CrewPanel' },
+  { name: '航线图鉴', comp: 'RoutePanel' },
+  { name: '悬赏令', comp: 'WantedPanel' },
+  { name: '杂货小镇', comp: 'ShopPanel' },
+  { name: '章节故事', comp: 'StoryPanel' }
+]
 const activeMenu = ref('首页')
+const panelMap = { CrewPanel, RoutePanel, WantedPanel, ShopPanel, StoryPanel }
+
+const activePanel = computed(() => {
+  const m = menus.find(x => x.name === activeMenu.value)
+  return m && m.comp ? panelMap[m.comp] : null
+})
 
 function switchMenu (name) {
-  if (name === activeMenu.value) return
   activeMenu.value = name
-  // 其余页面暂未开发：点亮选中态并提示
-  toast(`「${name}」页面开发中，敬请期待 ⚓`)
 }
 
 /* ---------- 首页展示数据（后端 /api/home/summary） ---------- */
 const summaryLoading = ref(true)
 const summary = ref({
   crewCount: 0,
+  roleCount: 0,
   routeCount: 0,
   wantedCount: 0,
+  shopCount: 0,
+  storyCount: 0,
   topRoutes: [],
-  topWanteds: []
+  topWanteds: [],
+  topCrews: [],
+  topStories: []
 })
 
 async function loadSummary () {
@@ -41,18 +61,16 @@ async function loadSummary () {
   }
 }
 
-onMounted(loadSummary)
-
-/* ---------- 搜索（后端 /api/home/search） ---------- */
+/* ---------- 搜索（后端 /api/home/search，五路） ---------- */
 const keyword = ref('')
 const searching = ref(false)
-const searchResult = ref(null) // null = 未搜索；{ routes, wanteds, crews, total }
+const searchResult = ref(null) // null = 未搜索
 const searchedKeyword = ref('')
 
 async function doSearch () {
   const kw = keyword.value.trim()
   if (!kw) {
-    toast('先输入想找的东西吧，比如「伟大航路的地图」')
+    toast('先输入想找的东西吧，比如「和之国」或「橡胶果实」')
     return
   }
   searching.value = true
@@ -71,6 +89,27 @@ async function doSearch () {
 function closeSearch () {
   searchResult.value = null
   searchedKeyword.value = ''
+}
+
+/** 搜索结果与榜单卡片点击 → 直接跳到对应页面并打开详情前的提示 */
+function goPanel (name) {
+  activeMenu.value = name
+}
+
+/* ---------- 详情弹窗（首页榜单卡片复用） ---------- */
+const detail = ref(null)
+
+function openDetail (type, item) {
+  detail.value = { type, data: item }
+}
+
+function closeDetail () {
+  detail.value = null
+}
+
+function dangerStars (level) {
+  const n = Math.max(0, Math.min(5, Number(level) || 0))
+  return '★'.repeat(n) + '☆'.repeat(5 - n)
 }
 
 /* ---------- 退出登船 ---------- */
@@ -92,6 +131,17 @@ function toast (msg) {
   toastText.value = msg
   clearTimeout(toastTimer)
   toastTimer = setTimeout(() => { toastText.value = '' }, 2200)
+}
+
+onMounted(() => {
+  loadSummary()
+  window.addEventListener('keydown', onKeydown)
+})
+
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+
+function onKeydown (e) {
+  if (e.key === 'Escape') closeDetail()
 }
 
 /* 今日日期（欢迎语用） */
@@ -121,20 +171,26 @@ const today = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'nume
       </div>
 
       <ul class="nav-menus">
-        <li v-for="m in menus" :key="m">
-          <a href="#" :class="{ active: activeMenu === m }" @click.prevent="switchMenu(m)">{{ m }}</a>
+        <li v-for="m in menus" :key="m.name">
+          <a href="#" :class="{ active: activeMenu === m.name }" @click.prevent="switchMenu(m.name)">{{ m.name }}</a>
         </li>
       </ul>
 
       <div class="nav-user">
+        <button class="nav-admin" type="button" @click="emit('open-admin')">⚙ 后台管理系统</button>
         <span class="nav-avatar">{{ username.slice(0, 1) }}</span>
         <span class="nav-name">{{ username }}</span>
         <button class="nav-exit" :disabled="exiting" @click="logout">退出登船</button>
       </div>
     </nav>
 
-    <!-- 主体：欢迎语 + 搜索栏 -->
-    <main class="home-main">
+    <!-- 各功能页：切换导航时渲染 -->
+    <main v-if="activePanel" class="home-main panel-wrap">
+      <component :is="activePanel" />
+    </main>
+
+    <!-- 首页：欢迎语 + 搜索栏 + 展示区 -->
+    <main v-else class="home-main">
       <p class="home-date">{{ today }} · 晴，适合出航</p>
       <h1 class="home-title">欢迎登船，<em>{{ username }}</em>！</h1>
       <p class="home-sub">世代传承的意志、时代的浪潮、人的梦想 —— 这些都是无法阻挡的。</p>
@@ -147,7 +203,7 @@ const today = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'nume
         <input
           v-model="keyword"
           type="text"
-          placeholder="搜索航线、船员、悬赏令……"
+          placeholder="搜索航线、船员、悬赏令、店铺、篇章……"
           @keyup.enter="doSearch"
         >
         <button v-if="searchResult" class="search-clear" type="button" @click="closeSearch">✕</button>
@@ -156,7 +212,7 @@ const today = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'nume
         </button>
       </div>
 
-      <!-- 搜索结果（有结果时替换下方三卡片展示区） -->
+      <!-- 搜索结果（五路） -->
       <transition name="fade">
         <section v-if="searchResult" class="search-result">
           <p class="search-result-title">
@@ -164,13 +220,16 @@ const today = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'nume
           </p>
 
           <div v-if="searchResult.routes.length" class="result-group">
-            <h3 class="result-group-head">🗺️ 航线 · {{ searchResult.routes.length }}</h3>
+            <h3 class="result-group-head">
+              🗺️ 航线 · {{ searchResult.routes.length }}
+              <a href="#" class="result-more" @click.prevent="goPanel('航线图鉴')">进入图鉴 ›</a>
+            </h3>
             <ul class="result-list">
-              <li v-for="r in searchResult.routes" :key="'r' + r.id" class="result-item">
+              <li v-for="r in searchResult.routes" :key="'r' + r.id" class="result-item clickable" @click="openDetail('route', r)">
                 <span class="result-icon">{{ r.icon }}</span>
                 <span class="result-main">
                   <b>{{ r.name }}</b>
-                  <small>{{ r.region }} · 危险等级 {{ r.dangerLevel }}</small>
+                  <small>{{ r.region }} · {{ dangerStars(r.dangerLevel) }}</small>
                 </span>
                 <span class="result-desc">{{ r.description }}</span>
               </li>
@@ -178,9 +237,12 @@ const today = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'nume
           </div>
 
           <div v-if="searchResult.wanteds.length" class="result-group">
-            <h3 class="result-group-head">🏴‍☠️ 悬赏令 · {{ searchResult.wanteds.length }}</h3>
+            <h3 class="result-group-head">
+              🏴‍☠️ 悬赏令 · {{ searchResult.wanteds.length }}
+              <a href="#" class="result-more" @click.prevent="goPanel('悬赏令')">进入榜单 ›</a>
+            </h3>
             <ul class="result-list">
-              <li v-for="w in searchResult.wanteds" :key="'w' + w.id" class="result-item">
+              <li v-for="w in searchResult.wanteds" :key="'w' + w.id" class="result-item clickable" @click="openDetail('wanted', w)">
                 <span class="result-icon">{{ w.icon }}</span>
                 <span class="result-main">
                   <b>{{ w.name }}</b>
@@ -192,56 +254,105 @@ const today = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'nume
           </div>
 
           <div v-if="searchResult.crews.length" class="result-group">
-            <h3 class="result-group-head">📜 船员名册 · {{ searchResult.crews.length }}</h3>
+            <h3 class="result-group-head">
+              ⚓ 船员名册 · {{ searchResult.crews.length }}
+              <a href="#" class="result-more" @click.prevent="goPanel('船员名册')">进入名册 ›</a>
+            </h3>
             <ul class="result-list">
-              <li v-for="c in searchResult.crews" :key="'c' + c.id" class="result-item">
-                <span class="result-icon result-avatar">{{ c.username.slice(0, 1) }}</span>
+              <li v-for="c in searchResult.crews" :key="'c' + c.id" class="result-item clickable" @click="openDetail('crew', c)">
+                <span class="result-icon">{{ c.icon }}</span>
                 <span class="result-main">
-                  <b>{{ c.username }}</b>
-                  <small>{{ c.email }}</small>
+                  <b>{{ c.name }}</b>
+                  <small>「{{ c.alias }}」 · {{ c.affiliation }}</small>
                 </span>
-                <span class="result-desc">于 {{ (c.createTime || '').slice(0, 10) }} 登记入册</span>
+                <span class="result-desc">{{ c.devilFruit || '无果实能力' }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <div v-if="searchResult.shops.length" class="result-group">
+            <h3 class="result-group-head">
+              🏪 杂货小镇 · {{ searchResult.shops.length }}
+              <a href="#" class="result-more" @click.prevent="goPanel('杂货小镇')">进入小镇 ›</a>
+            </h3>
+            <ul class="result-list">
+              <li v-for="s in searchResult.shops" :key="'s' + s.id" class="result-item clickable" @click="openDetail('shop', s)">
+                <span class="result-icon">{{ s.icon }}</span>
+                <span class="result-main">
+                  <b>{{ s.name }}</b>
+                  <small>{{ s.category }} · {{ s.location }}</small>
+                </span>
+                <span class="result-bounty">฿ {{ formatNumber(s.price) }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <div v-if="searchResult.stories.length" class="result-group">
+            <h3 class="result-group-head">
+              📖 篇章故事 · {{ searchResult.stories.length }}
+              <a href="#" class="result-more" @click.prevent="goPanel('章节故事')">进入故事 ›</a>
+            </h3>
+            <ul class="result-list">
+              <li v-for="s in searchResult.stories" :key="'st' + s.id" class="result-item clickable" @click="openDetail('story', s)">
+                <span class="result-icon">{{ s.icon }}</span>
+                <span class="result-main">
+                  <b>{{ s.title }}</b>
+                  <small>{{ s.sea }} · {{ s.episodes }}</small>
+                </span>
+                <span class="result-desc">{{ s.summary }}</span>
               </li>
             </ul>
           </div>
         </section>
       </transition>
 
-      <!-- 首页展示区：真实数据（后端 /api/home/summary） -->
+      <!-- 首页展示区 -->
       <template v-if="!searchResult">
         <div class="home-stats">
-          <div class="stat">
-            <b>{{ summary.crewCount }}</b><span>在册船员</span>
+          <div class="stat" @click="goPanel('船员名册')">
+            <b>{{ summary.roleCount }}</b><span>名册人物</span>
           </div>
-          <div class="stat">
+          <div class="stat" @click="goPanel('航线图鉴')">
             <b>{{ summary.routeCount }}</b><span>收录航线</span>
           </div>
-          <div class="stat">
+          <div class="stat" @click="goPanel('悬赏令')">
             <b>{{ summary.wantedCount }}</b><span>悬赏令</span>
+          </div>
+          <div class="stat" @click="goPanel('杂货小镇')">
+            <b>{{ summary.shopCount }}</b><span>杂货店铺</span>
+          </div>
+          <div class="stat" @click="goPanel('章节故事')">
+            <b>{{ summary.storyCount }}</b><span>篇章故事</span>
           </div>
         </div>
 
         <div class="home-cards" :class="{ loading: summaryLoading }">
-          <!-- 今日航线：按 sortNo 取前 3 -->
+          <!-- 今日航线 -->
           <div class="home-card">
-            <div class="home-card-head">🗺️ 今日航线</div>
+            <div class="home-card-head">
+              🗺️ 今日航线
+              <a href="#" class="card-more" @click.prevent="goPanel('航线图鉴')">更多 ›</a>
+            </div>
             <ul v-if="summary.topRoutes.length" class="card-list">
-              <li v-for="r in summary.topRoutes" :key="r.id">
+              <li v-for="r in summary.topRoutes" :key="r.id" class="clickable" @click="openDetail('route', r)">
                 <span class="card-emoji">{{ r.icon }}</span>
                 <span class="card-text">
                   <b>{{ r.name }}</b>
-                  <small>{{ r.region }} · {{ r.dangerLevel }}危</small>
+                  <small>{{ r.region }} · {{ dangerStars(r.dangerLevel) }}</small>
                 </span>
               </li>
             </ul>
             <p v-else class="card-empty">{{ summaryLoading ? '正在展开海图……' : '海图暂无航线记录' }}</p>
           </div>
 
-          <!-- 热门悬赏：按赏金降序取前 3 -->
+          <!-- 热门悬赏 -->
           <div class="home-card">
-            <div class="home-card-head">🏴‍☠️ 热门悬赏</div>
+            <div class="home-card-head">
+              🏴‍☠️ 热门悬赏
+              <a href="#" class="card-more" @click.prevent="goPanel('悬赏令')">更多 ›</a>
+            </div>
             <ul v-if="summary.topWanteds.length" class="card-list">
-              <li v-for="w in summary.topWanteds" :key="w.id">
+              <li v-for="w in summary.topWanteds" :key="w.id" class="clickable" @click="openDetail('wanted', w)">
                 <span class="card-emoji">{{ w.icon }}</span>
                 <span class="card-text">
                   <b>{{ w.name }}</b>
@@ -252,18 +363,117 @@ const today = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'nume
             <p v-else class="card-empty">{{ summaryLoading ? '正在张贴悬赏令……' : '暂无悬赏记录' }}</p>
           </div>
 
-          <!-- 船员名册：在册人数统计 -->
+          <!-- 船员名册概览 -->
           <div class="home-card">
-            <div class="home-card-head">📜 船员名册</div>
-            <p class="card-crew-line">
-              已有 <b class="card-crew-num">{{ summary.crewCount }}</b> 名航海士登记入册，
-              找到你的同行伙伴，一起出发吧！
-            </p>
-            <p class="card-empty card-crew-tip">名册详情页开发中，可先用上方搜索查找船员 🔍</p>
+            <div class="home-card-head">
+              ⚓ 名册人物
+              <a href="#" class="card-more" @click.prevent="goPanel('船员名册')">更多 ›</a>
+            </div>
+            <ul v-if="summary.topCrews.length" class="card-list">
+              <li v-for="c in summary.topCrews" :key="c.id" class="clickable" @click="openDetail('crew', c)">
+                <span class="card-emoji">{{ c.icon }}</span>
+                <span class="card-text">
+                  <b>{{ c.name }}</b>
+                  <small>{{ c.position }} · {{ formatBounty(c.bounty) }}</small>
+                </span>
+              </li>
+            </ul>
+            <p v-else class="card-empty">{{ summaryLoading ? '正在翻开名册……' : '暂无名册记录' }}</p>
+          </div>
+
+          <!-- 最新篇章 -->
+          <div class="home-card">
+            <div class="home-card-head">
+              📖 最新篇章
+              <a href="#" class="card-more" @click.prevent="goPanel('章节故事')">更多 ›</a>
+            </div>
+            <ul v-if="summary.topStories.length" class="card-list">
+              <li v-for="s in summary.topStories" :key="s.id" class="clickable" @click="openDetail('story', s)">
+                <span class="card-emoji">{{ s.icon }}</span>
+                <span class="card-text">
+                  <b>{{ s.title }}</b>
+                  <small>{{ s.episodes }}</small>
+                </span>
+              </li>
+            </ul>
+            <p v-else class="card-empty">{{ summaryLoading ? '正在翻阅航海日志……' : '暂无篇章记录' }}</p>
           </div>
         </div>
       </template>
     </main>
+
+    <!-- 详情弹窗 -->
+    <transition name="pop">
+      <div v-if="detail" class="detail-mask" @click.self="closeDetail">
+        <!-- 航线 -->
+        <div v-if="detail.type === 'route'" class="detail-modal detail-route">
+          <button class="detail-close" type="button" @click="closeDetail">✕</button>
+          <span class="detail-route-icon">{{ detail.data.icon }}</span>
+          <h3 class="detail-title">{{ detail.data.name }}</h3>
+          <p class="detail-route-region">{{ detail.data.region }}</p>
+          <p class="detail-stars">危险等级 <b>{{ dangerStars(detail.data.dangerLevel) }}</b></p>
+          <p class="detail-desc">{{ detail.data.description }}</p>
+        </div>
+
+        <!-- 悬赏令 -->
+        <div v-else-if="detail.type === 'wanted'" class="detail-modal detail-wanted">
+          <button class="detail-close" type="button" @click="closeDetail">✕</button>
+          <p class="poster-head">MARINE · 世界政府公告</p>
+          <p class="poster-epithet">「{{ detail.data.epithet }}」</p>
+          <span class="poster-icon">{{ detail.data.icon }}</span>
+          <h3 class="poster-name">{{ detail.data.name }}</h3>
+          <p class="poster-crew">所属海贼团：{{ detail.data.crew || '不明' }}</p>
+          <div class="poster-bounty">
+            <span class="poster-berry">฿</span>
+            <b>{{ formatNumber(detail.data.bounty) }}</b>
+          </div>
+          <p class="poster-bounty-fmt">悬赏金额：{{ formatBounty(detail.data.bounty) }}</p>
+          <p class="poster-dead">DEAD OR ALIVE</p>
+        </div>
+
+        <!-- 船员 -->
+        <div v-else-if="detail.type === 'crew'" class="detail-modal detail-crew">
+          <button class="detail-close" type="button" @click="closeDetail">✕</button>
+          <span class="detail-crew-avatar">{{ detail.data.icon }}</span>
+          <h3 class="detail-title">{{ detail.data.name }}</h3>
+          <p class="detail-crew-mail">「{{ detail.data.alias }}」 · {{ detail.data.position }}</p>
+          <div class="detail-rows">
+            <p><span>所属势力</span>{{ detail.data.affiliation }}</p>
+            <p><span>出身地</span>{{ detail.data.origin }}</p>
+            <p><span>恶魔果实</span>{{ detail.data.devilFruit || '无' }}</p>
+            <p><span>悬赏金</span>฿ {{ formatNumber(detail.data.bounty) }}</p>
+          </div>
+          <p class="detail-desc">{{ detail.data.description }}</p>
+        </div>
+
+        <!-- 杂货 -->
+        <div v-else-if="detail.type === 'shop'" class="detail-modal">
+          <button class="detail-close" type="button" @click="closeDetail">✕</button>
+          <span class="detail-route-icon">{{ detail.data.icon }}</span>
+          <h3 class="detail-title">{{ detail.data.name }}</h3>
+          <p class="detail-route-region">{{ detail.data.category }} · {{ detail.data.location }}</p>
+          <div class="detail-rows">
+            <p><span>招牌商品</span>{{ detail.data.item }}</p>
+            <p><span>售价</span>฿ {{ formatNumber(detail.data.price) }}</p>
+          </div>
+          <p class="detail-desc">{{ detail.data.description }}</p>
+        </div>
+
+        <!-- 篇章 -->
+        <div v-else class="detail-modal">
+          <button class="detail-close" type="button" @click="closeDetail">✕</button>
+          <span class="detail-route-icon">{{ detail.data.icon }}</span>
+          <h3 class="detail-title">{{ detail.data.title }}</h3>
+          <p class="detail-route-region">{{ detail.data.sea }}</p>
+          <div class="detail-rows">
+            <p><span>漫画</span>{{ detail.data.chapters }}</p>
+            <p><span>动画</span>{{ detail.data.episodes }}</p>
+            <p><span>登场</span>{{ detail.data.mainRoles }}</p>
+          </div>
+          <p class="detail-desc">{{ detail.data.summary }}</p>
+        </div>
+      </div>
+    </transition>
 
     <!-- 轻提示 -->
     <transition name="toast">
