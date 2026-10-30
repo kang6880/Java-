@@ -6,6 +6,7 @@ import SeaScene from './components/SeaScene.vue'
 import BrandPanel from './components/BrandPanel.vue'
 import LoginForm from './components/LoginForm.vue'
 import RegisterForm from './components/RegisterForm.vue'
+import ResetForm from './components/ResetForm.vue'
 import HomePage from './components/HomePage.vue'
 import AdminLogin from './components/AdminLogin.vue'
 import AdminPanel from './components/AdminPanel.vue'
@@ -17,7 +18,9 @@ import ConfettiLayer from './components/ConfettiLayer.vue'
 const isAdminPath = () => window.location.pathname === '/admin'
 
 const view = ref(isAdminPath() ? 'admin' : (getToken() ? 'home' : 'auth'))
-const authTab = ref('login') // login | register
+const authTab = ref('login') // login | register | reset（reset 无页签，由登录页「忘记密钥」进入）
+/** 重置成功后回登录页预填的代号 */
+const prefillAccount = ref('')
 /** 后台是否已登录（决定显示登录页还是管理面板） */
 const adminAuthed = ref(!!getAdminToken())
 
@@ -44,6 +47,12 @@ function closeMask () {
 /* 登录成功 → 首页 */
 function onLoginSuccess () {
   view.value = 'home'
+}
+
+/* 重置成功 → 回登录页并预填代号 */
+function onResetSuccess (name) {
+  prefillAccount.value = name || ''
+  authTab.value = 'login'
 }
 
 /* 首页退出 → 回登录页 */
@@ -102,12 +111,13 @@ window.addEventListener('popstate', () => {
       <!-- 右侧：登录 / 注册双页签 -->
       <div class="auth-panel card">
         <div class="tabs">
-          <button type="button" :class="{ active: authTab === 'login' }" @click="authTab = 'login'">登船验证</button>
+          <button type="button" :class="{ active: authTab === 'login' || authTab === 'reset' }" @click="authTab = 'login'">登船验证</button>
           <button type="button" :class="{ active: authTab === 'register' }" @click="authTab = 'register'">招募登记</button>
         </div>
 
-        <LoginForm v-show="authTab === 'login'" @success="onLoginSuccess" @switch-tab="authTab = $event" />
+        <LoginForm v-show="authTab === 'login'" :prefill-account="prefillAccount" @success="onLoginSuccess" @switch-tab="authTab = $event" />
         <RegisterForm v-show="authTab === 'register'" ref="registerFormRef" @success="onSuccess" @switch-tab="authTab = $event" />
+        <ResetForm v-show="authTab === 'reset'" @success="onResetSuccess" @switch-tab="authTab = $event" />
       </div>
     </main>
 

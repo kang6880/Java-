@@ -1,6 +1,11 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { userApi } from '../api/user.js'
+
+const props = defineProps({
+  /** 重置成功后回登录页预填的航海士代号 */
+  prefillAccount: { type: String, default: '' }
+})
 
 const emit = defineEmits(['success', 'switch-tab'])
 
@@ -10,6 +15,11 @@ const showPwd = ref(false)
 const loading = ref(false)
 const tipWarning = ref('')
 const shakeCard = ref(false)
+
+/* 重置成功 → 回到登录页时预填代号，方便直接用新密钥登船 */
+watch(() => props.prefillAccount, (v) => {
+  if (v) account.value = v
+})
 
 function clearErr () {
   tipWarning.value = ''
@@ -76,6 +86,8 @@ async function onSubmit () {
       </button>
     </form>
 
-    <p class="foot">还没有名册？ <a href="#" @click.prevent="emit('switch-tab', 'register')">去登记</a></p>
+    <p class="foot">
+      <a href="#" @click.prevent="emit('switch-tab', 'reset')">忘记密钥？</a><span class="dot">·</span>还没有名册？<a href="#" @click.prevent="emit('switch-tab', 'register')">去登记</a>
+    </p>
   </section>
 </template>

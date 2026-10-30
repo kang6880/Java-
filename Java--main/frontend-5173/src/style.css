@@ -168,6 +168,7 @@ body{
 .foot{text-align:center;margin-top:18px;font-size:13px;color:#8a6d4b}
 .foot a{color:var(--gold-dark);text-decoration:none;font-weight:600}
 .foot a:hover{text-decoration:underline}
+.foot .dot{margin:0 6px;color:#c4ab86}
 
 /* ---------- 成功弹层 ---------- */
 .mask{
