@@ -93,6 +93,7 @@ function onKeydown (e) {
             <b>{{ formatNumber(detail.bounty) }}</b>
           </div>
           <p class="poster-bounty-fmt">悬赏金额：{{ formatBounty(detail.bounty) }}</p>
+          <p v-if="detail.description" class="poster-desc">{{ detail.description }}</p>
           <p class="poster-dead">DEAD OR ALIVE</p>
         </div>
       </div>

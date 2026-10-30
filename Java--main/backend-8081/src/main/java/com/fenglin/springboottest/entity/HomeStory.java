@@ -32,8 +32,17 @@ public class HomeStory {
     /** 主要登场人物 */
     private String mainRoles;
 
+    /** 封面图 URL */
+    private String cover;
+
+    /** 解说视频 URL */
+    private String video;
+
     /** 剧情概要 */
     private String summary;
+
+    /** 完整情节长文 */
+    private String fullText;
 
     /** 展示排序 */
     private Integer sortNo;
@@ -94,12 +103,36 @@ public class HomeStory {
         this.mainRoles = mainRoles;
     }
 
+    public String getCover() {
+        return cover;
+    }
+
+    public void setCover(String cover) {
+        this.cover = cover;
+    }
+
+    public String getVideo() {
+        return video;
+    }
+
+    public void setVideo(String video) {
+        this.video = video;
+    }
+
     public String getSummary() {
         return summary;
     }
 
     public void setSummary(String summary) {
         this.summary = summary;
+    }
+
+    public String getFullText() {
+        return fullText;
+    }
+
+    public void setFullText(String fullText) {
+        this.fullText = fullText;
     }
 
     public Integer getSortNo() {

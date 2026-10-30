@@ -33,6 +33,8 @@ const activePanel = computed(() => {
 
 function switchMenu (name) {
   activeMenu.value = name
+  // 切换页面后平滑滚回顶部，配合吸顶导航保证随时可跳转
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 /* ---------- 首页展示数据（后端 /api/home/summary） ---------- */
@@ -136,9 +138,13 @@ function toast (msg) {
 onMounted(() => {
   loadSummary()
   window.addEventListener('keydown', onKeydown)
+  window.addEventListener('scroll', onScroll, { passive: true })
 })
 
-onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  window.removeEventListener('scroll', onScroll)
+})
 
 function onKeydown (e) {
   if (e.key === 'Escape') closeDetail()
@@ -146,6 +152,15 @@ function onKeydown (e) {
 
 /* 今日日期（欢迎语用） */
 const today = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' })
+
+/* 回到顶部按钮：滚动超过一屏才显示 */
+const showTop = ref(false)
+function onScroll () {
+  showTop.value = window.scrollY > window.innerHeight * 0.8
+}
+function toTop () {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 </script>
 
 <template>
@@ -186,7 +201,15 @@ const today = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'nume
 
     <!-- 各功能页：切换导航时渲染 -->
     <main v-if="activePanel" class="home-main panel-wrap">
-      <component :is="activePanel" />
+      <div class="panel-toolbar">
+        <button class="back-home" type="button" @click="switchMenu('首页')">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5" /><path d="M12 19l-7-7 7-7" /></svg>
+          返回首页
+        </button>
+      </div>
+      <transition name="panel-swap" mode="out-in">
+        <component :is="activePanel" :key="activeMenu" />
+      </transition>
     </main>
 
     <!-- 首页：欢迎语 + 搜索栏 + 展示区 -->
@@ -478,6 +501,13 @@ const today = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'nume
     <!-- 轻提示 -->
     <transition name="toast">
       <div v-if="toastText" class="toast">{{ toastText }}</div>
+    </transition>
+
+    <!-- 回到顶部 -->
+    <transition name="fade">
+      <button v-if="showTop" class="to-top" type="button" title="回到顶部" @click="toTop">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5" /><path d="M5 12l7-7 7 7" /></svg>
+      </button>
     </transition>
   </div>
 </template>

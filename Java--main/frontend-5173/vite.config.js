@@ -2,7 +2,8 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 // 后端 Spring Boot 服务地址（application-dev.properties 中 server.port=8081）
-const BACKEND = 'http://localhost:8081'
+// 用 127.0.0.1 而非 localhost：避免 Windows 上 localhost 偶发解析到 IPv6(::1) 导致代理连接被拒
+const BACKEND = 'http://127.0.0.1:8081'
 
 export default defineConfig({
   plugins: [vue()],
@@ -13,7 +14,9 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: BACKEND,
-        changeOrigin: true
+        changeOrigin: true,
+        // 后端冷启动/瞬时抖动时避免前端一直挂起，超时后快速报错便于重试
+        timeout: 10000
       }
     }
   }

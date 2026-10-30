@@ -30,6 +30,9 @@ public class HomeWanted {
     /** 悬赏金额（贝利） */
     private Long bounty;
 
+    /** 悬赏理由 / 罪行描述 */
+    private String description;
+
     public Long getId() {
         return id;
     }
@@ -76,5 +79,13 @@ public class HomeWanted {
 
     public void setBounty(Long bounty) {
         this.bounty = bounty;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

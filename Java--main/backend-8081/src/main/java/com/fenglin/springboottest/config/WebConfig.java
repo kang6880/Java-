@@ -41,8 +41,10 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+        // 开发/本地调试：放行所有本机来源（含 127.0.0.1、localhost、局域网/虚拟网卡 IP），
+        // 避免前端经不同 IP（如 192.168.x.x:5173）访问时偶发 CORS 拒绝导致「有时注册/登录失败」
         registry.addMapping("/api/**")
-                .allowedOriginPatterns("http://localhost:*", "http://127.0.0.1:*", "null")
+                .allowedOriginPatterns("*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)

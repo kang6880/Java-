@@ -35,11 +35,17 @@ public class HomeCrew {
     /** 恶魔果实 */
     private String devilFruit;
 
+    /** 动漫形象图 URL */
+    private String image;
+
     /** 悬赏金（贝利） */
     private Long bounty;
 
     /** 人物简介 */
     private String description;
+
+    /** 主要事迹 */
+    private String deeds;
 
     /** 展示排序 */
     private Integer sortNo;
@@ -108,6 +114,14 @@ public class HomeCrew {
         this.devilFruit = devilFruit;
     }
 
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
     public Long getBounty() {
         return bounty;
     }
@@ -122,6 +136,14 @@ public class HomeCrew {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getDeeds() {
+        return deeds;
+    }
+
+    public void setDeeds(String deeds) {
+        this.deeds = deeds;
     }
 
     public Integer getSortNo() {

@@ -1,11 +1,20 @@
 <script setup>
 import { ref } from 'vue'
 
-/* 装饰：云与海鸥（与原版位置一致，延迟随机） */
+/* 装饰：星空、云、海鸥（随机延迟） */
+const stars = Array.from({ length: 36 }, (_, i) => ({
+  left: Math.random() * 100,
+  top: Math.random() * 55,
+  size: 1 + Math.random() * 2.2,
+  delay: -(Math.random() * 6),
+  duration: 3 + Math.random() * 4
+}))
+
 const clouds = [
   { top: 120, width: 60,  height: 26, duration: 120 },
   { top: 300, width: 140, height: 34, duration: 90 },
-  { top: 520, width: 80,  height: 22, duration: 150 }
+  { top: 520, width: 80,  height: 22, duration: 150 },
+  { top: 680, width: 110, height: 28, duration: 105 }
 ].map(c => ({
   ...c,
   delay: -(Math.random() * c.duration)
@@ -14,18 +23,32 @@ const clouds = [
 const gulls = [
   { top: 70,  size: 11, duration: 26 },
   { top: 110, size: 9,  duration: 34 },
-  { top: 150, size: 13, duration: 30 }
+  { top: 150, size: 13, duration: 30 },
+  { top: 200, size: 10, duration: 40 }
 ].map(g => ({
   ...g,
   delay: -(Math.random() * g.duration),
   text: '🕊️'
 }))
-
-const sceneRef = ref(null)
 </script>
 
 <template>
-  <div class="scene" ref="sceneRef">
+  <div class="scene">
+    <!-- 星空 -->
+    <div
+      v-for="(s, i) in stars"
+      :key="'star-' + i"
+      class="star"
+      :style="{
+        left: s.left + '%',
+        top: s.top + '%',
+        width: s.size + 'px',
+        height: s.size + 'px',
+        animationDuration: s.duration + 's',
+        animationDelay: s.delay + 's'
+      }"
+    ></div>
+
     <div class="sun"></div>
 
     <div
