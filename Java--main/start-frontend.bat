@@ -18,5 +18,5 @@ if exist "node_modules\" (
 echo [2/2] 启动 Vite 开发服务器 ...
 echo 8 秒后自动打开浏览器，关闭本窗口即停止前端。
 start "" cmd /c "timeout /t 8 /nobreak >nul && start "" http://localhost:5173"
-call npm run dev
+call npm run dev -- --strictPort
 pause

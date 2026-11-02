@@ -12,12 +12,14 @@ import AdminLogin from './components/AdminLogin.vue'
 import AdminPanel from './components/AdminPanel.vue'
 import SuccessModal from './components/SuccessModal.vue'
 import ConfettiLayer from './components/ConfettiLayer.vue'
+import OnePieceShow from './components/OnePieceShow.vue'
 
-/* ---------- 视图状态：auth（登录/注册） | home（前台） | admin（后台） ---------- */
-/* 直接访问 /admin 会进入后台入口；已有令牌则直接进首页（与单文件版行为一致） */
+/* ---------- 视图状态：auth（登录/注册） | home（前台） | admin（后台） | onepiece（航海王全史） ---------- */
+/* 直接访问 /admin 进入后台；/onepiece 进入航海王全史展示页（无需登录）；已有令牌则进首页 */
 const isAdminPath = () => window.location.pathname === '/admin'
+const isOnePiecePath = () => window.location.pathname === '/onepiece'
 
-const view = ref(isAdminPath() ? 'admin' : (getToken() ? 'home' : 'auth'))
+const view = ref(isAdminPath() ? 'admin' : (isOnePiecePath() ? 'onepiece' : (getToken() ? 'home' : 'auth')))
 const authTab = ref('login') // login | register | reset（reset 无页签，由登录页「忘记密钥」进入）
 /** 重置成功后回登录页预填的代号 */
 const prefillAccount = ref('')
@@ -90,13 +92,16 @@ function backFromAdmin () {
 
 /* 浏览器前进/后退按钮也能正确切换视图 */
 window.addEventListener('popstate', () => {
-  view.value = isAdminPath() ? 'admin' : (getToken() ? 'home' : 'auth')
+  view.value = isAdminPath() ? 'admin' : (isOnePiecePath() ? 'onepiece' : (getToken() ? 'home' : 'auth'))
 })
 </script>
 
 <template>
+  <!-- ==================== 航海王全史展示页（无需登录，/onepiece） ==================== -->
+  <OnePieceShow v-if="view === 'onepiece'" />
+
   <!-- ==================== 后台管理系统 ==================== -->
-  <template v-if="view === 'admin'">
+  <template v-else-if="view === 'admin'">
     <AdminLogin v-if="!adminAuthed" @success="onAdminLoginSuccess" @back="backFromAdmin" />
     <AdminPanel v-else @logout="onAdminLogout" />
   </template>

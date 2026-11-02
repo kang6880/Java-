@@ -8,6 +8,7 @@ import RoutePanel from './RoutePanel.vue'
 import WantedPanel from './WantedPanel.vue'
 import ShopPanel from './ShopPanel.vue'
 import StoryPanel from './StoryPanel.vue'
+import OnePieceShow from './OnePieceShow.vue'
 
 const emit = defineEmits(['logout', 'open-admin'])
 
@@ -17,6 +18,7 @@ const username = computed(() => (profile && profile.username) || '船长')
 /* ---------- 导航 ---------- */
 const menus = [
   { name: '首页', comp: null },
+  { name: '航海王全史', comp: 'OnePieceShow' },
   { name: '船员名册', comp: 'CrewPanel' },
   { name: '航线图鉴', comp: 'RoutePanel' },
   { name: '悬赏令', comp: 'WantedPanel' },
@@ -24,7 +26,7 @@ const menus = [
   { name: '章节故事', comp: 'StoryPanel' }
 ]
 const activeMenu = ref('首页')
-const panelMap = { CrewPanel, RoutePanel, WantedPanel, ShopPanel, StoryPanel }
+const panelMap = { OnePieceShow, CrewPanel, RoutePanel, WantedPanel, ShopPanel, StoryPanel }
 
 const activePanel = computed(() => {
   const m = menus.find(x => x.name === activeMenu.value)

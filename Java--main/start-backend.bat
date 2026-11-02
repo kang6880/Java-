@@ -19,7 +19,7 @@ if exist "target\springBootTest-0.0.1-SNAPSHOT.jar" (
     )
 )
 
-echo [2/2] 启动后端：http://localhost:8081/Luffy.html
+echo [2/2] 启动后端 API 服务：http://localhost:8081（供前端 /api 调用）
 echo 关闭本窗口即停止后端。
 java -jar target\springBootTest-0.0.1-SNAPSHOT.jar --server.port=8081
 pause

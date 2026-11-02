@@ -3,16 +3,21 @@
 > 本文件写给 AI 助手自己看：下次会话遇到"启动项目 / 连不上后端"时，**直接按本手册执行，不要重新排查**。
 > 电脑每次重置后 node_modules、target 会被删除，但 .m2、MySQL、项目源码都保留。
 
-## 目录结构（2026-10-23 重整后）
+## 目录结构（2026-11-02 纯 Vue 化后）
 
 ```
 Java--main/
-├── backend-8081/        后端 Spring Boot 工程（原 springBootTest）
-├── frontend-5173/       前端 Vue3 + Vite 工程（原 luffy-vue，内含单文件版 Luffy.html）
-├── luffy_register.sql   数据库初始化脚本
+├── backend-8081/        后端 Spring Boot 工程（纯 API，无静态页面）
+├── frontend-5173/       前端 Vue3 + Vite 工程（纯 Vue，入口仅 index.html）
+├── springboottest_backup_20261102.sql  完整数据库快照（7 表结构 + 全数据，唯一权威正本）
 ├── AI-NOTES.md          本文件
-└── start-*.bat / stop-all.bat   启停脚本（GBK 编码，%~dp0 相对路径）
+├── start-all.bat / stop-all.bat   一键启停入口（调用 start-all.ps1 / stop-all.ps1）
+├── start-all.ps1 / stop-all.ps1   核心逻辑（PowerShell，UTF-8 BOM 编码，含健康检查）
+├── start-backend.bat / start-frontend.bat   单独启停（旧 bat，仍可用）
 ```
+
+> 注意：单文件版 Luffy.html、OnePiece.html 已全部转换为 Vue 组件并删除，项目是纯 Vue。
+> 后端已删除废弃 UserController.java（Thymeleaf）和 static/templates 里的旧 html，纯 API 服务。
 
 ## 一、最快启动方式（优先推荐）
 
@@ -20,11 +25,13 @@ Java--main/
 
 | 脚本 | 作用 |
 |------|------|
-| `start-all.bat` | 一键：数据库自检+初始化 → 编译并启动后端(8081) → 装依赖并启动前端(5173) → 开浏览器 |
+| `start-all.bat` | 一键入口，调用 start-all.ps1：数据库自检+初始化 → 后台启动后端(8081，健康检查) → 后台启动前端(5173，strictPort) → 开浏览器 |
+| `stop-all.bat` | 一键停止入口，调用 stop-all.ps1：杀 8081/5173/5174 进程 |
 | `start-backend.bat` | 只启动后端（缺 target 自动 mvnw 编译） |
 | `start-frontend.bat` | 只启动前端（缺 node_modules 自动 npm ci） |
-| `start-luffy.bat` | 只开单文件版网页（frontend-5173\Luffy.html）+ 确保后端在跑 |
-| `stop-all.bat` | 杀掉 8081 / 5173 进程 |
+
+> 关键改进（2026-11-02）：start-all 改用 PowerShell（UTF-8 BOM），用 Start-Process 后台启动 + 轮询端口健康检查，替代旧的 `start /min cmd /c` + 固定 timeout；前端 vite.config.js 加 `strictPort: true`，避免 5173 被占时静默顺延到 5174 导致打开错地址。
+> 注意：.ps1 文件必须是 UTF-8 BOM 编码，否则 PowerShell 5.1 按 GBK 读中文注释会乱码。
 
 ## 二、如果 AI 要自己动手（无脚本场景），按此顺序执行
 
@@ -40,17 +47,18 @@ Java--main/
 2. **启动后端必须带端口参数**：`java -jar target/springBootTest-0.0.1-SNAPSHOT.jar --server.port=8081`
    ⚠️ 绝不能省略：环境变量 SERVER__PORT=49469 会被 Spring 宽松绑定读走，且 49469 被系统占用，服务必挂。
 3. **数据库自检**：`"C:/Program Files/MySQL/MySQL Server 8.0/bin/mysql.exe" -uroot -p123456 -e "USE springboottest;"` 失败则执行：
-   `mysql.exe -uroot -p123456 --default-character-set=utf8mb4 < luffy_register.sql`（项目顶层有一份）
+   `mysql.exe -uroot -p123456 --default-character-set=utf8mb4 < springboottest_backup_20261102.sql`（完整快照，一键重建 7 表+数据）
 4. **前端**：`cd frontend-5173 && npm ci`（.npmrc 已配 npmmirror）→ `npm run dev` → http://localhost:5173
-5. **验证**：`curl --noproxy localhost http://localhost:8081/Luffy.html` 应返回 200（加 --noproxy，本机有系统代理会干扰 curl）。
+5. **验证**：`curl --noproxy localhost http://localhost:5173/` 应返回 200（加 --noproxy，本机有系统代理会干扰 curl）。后端 API 验证：`curl --noproxy 127.0.0.1 http://127.0.0.1:8081/api/home/summary` 返回 401（未登录）即后端正常。
 
 ## 三、已知坑（踩过，勿重蹈）
 
-- **CORS**：双击 Luffy.html（file://）时 Origin 为 null。backend-8081/src/main/java/.../WebConfig.java 的 allowedOriginPatterns 必须包含 `"null"`，删了双击打开就废。
+- **纯 Vue 项目**：前端唯一入口是 `http://localhost:5173`（Vue 的 index.html），无任何单文件 .html。`/onepiece` 是 Vue 内部路由（航海王全史页），`/admin` 是后台。
+- **后端 8081 是纯 API**：不再返回任何 html 页面，访问 `http://localhost:8081/Luffy.html` 会 404（旧静态文件已删除）。
 - **curl 502 假象**：本机有系统代理，直接 curl localhost 会走代理返回 502/000，必须加 `--noproxy localhost`。
 - **用户名长度**：后端按 Java String.length 校验 ≥3，两个汉字（如"索隆"）会被拒。
 - **MySQL 保留字**：表名用 `sys_user` 不是 `user`。
-- **luffy_register.sql 含 DROP TABLE**：重跑清空所有注册数据。
+- **luffy_register.sql 已删除**（sys_user 表已含在完整快照 springboottest_backup_20261102.sql 里，无需单独脚本）。
 - **taskkill 在 Git Bash**：用 `taskkill /F /PID xxx`（单斜杠），`//F` 反而报错。
 - **改 bat 必须保持 GBK 编码**：先写 UTF-8 再 `iconv -f UTF-8 -t GBK` 转换，直接编辑 GBK 文件会写坏中文。
 - **重新打包前先停 8081 后端**：进程锁住 target jar，Maven repackage 会报 "Unable to rename"。
@@ -63,9 +71,6 @@ Java--main/
 
 - 后端：backend-8081/，Spring Boot 3.4.5 + MyBatis-Plus，profile=dev（application-dev.properties，端口 8081，MySQL root/123456，库 springboottest）。
 - 用户表：sys_user（接口：POST /api/user/register | /login | /reset；GET /api/user/profile；POST /api/user/change-password | /logout，后三者需 X-Token）。
-- 首页（2026-10-26 新增，2026-10-29 补齐后端+详情弹窗）：表 home_route（航线）、home_wanted（悬赏令），建表脚本 home_init.sql（顶层正本，CREATE IF NOT EXISTS + INSERT IGNORE，可重复执行不清数据）；接口 GET /api/home/summary（首页统计+榜单）、GET /api/home/search?keyword=（航线/悬赏/船员三路搜索），均需 X-Token（WebConfig 保护 /api/home/**）。后端实现：controller/HomeController.java + entity/HomeRoute|HomeWanted + mapper/HomeRouteMapper|HomeWantedMapper。
-- 首页交互（2026-10-29）：搜索结果与首页榜单卡片均可点击，弹出详情（航线详情卡 / 悬赏令海报 / 船员档案），数据全部来自后端真实数据；Esc 或点遮罩关闭。样式在 src/style.css「可点击条目 + 详情弹窗」段。
-- 单文件页：frontend-5173/Luffy.html（同源访问 /api；file:// 时直连 8081）。另有内置副本 backend-8081/src/main/resources/static/Luffy.html。
-- Vue 前端：frontend-5173/，Vite 代理 /api → 8081（vite.config.js 已配好）；API 封装 src/api/user.js（request 已支持完整 /api 路径复用）与 src/api/home.js；首页组件 src/components/HomePage.vue（含统计、真实榜单卡片、搜索结果面板）。
+- 首页（2026-10-26 新增，2026-10-29 补齐后端+详情弹窗，2026-11-02 补字段+扩数据）：表 home_route（航线 13 条）、home_wanted（悬赏令 21 条）、home_crew（名册 31 条）、home_shop（店铺 12 条）、home_story（篇章 12 条）。完整表结构+数据以 springboottest_backup_20261102.sql 为唯一权威正本（含全部字段和数据，含新增7角色）。接口 GET /api/home/summary、GET /api/home/search?keyword=、GET /api/home/crews|routes|wanteds|shops|stories，均需 X-Token。
+- Vue 前端：frontend-5173/，Vite 代理 /api → 8081（vite.config.js 已配好）；组件 src/components/（OnePieceShow.vue=航海王全史 /onepiece 无需登录，HomePage.vue=首页，LoginForm/RegisterForm/ResetForm=登录注册重置）。API 封装 src/api/user.js、src/api/home.js、src/api/admin.js。
 - 演示账号：路飞 / 123456（luffy@onepiece.com）。
-- 历史遗留副本（LoginInterceptor.java、user.js、_target_backup、sql/、backend 根下 luffy_register.sql）已于 2026-10-23 清理；SQL 正本在 Java--main 顶层（luffy_register.sql 管 sys_user，home_init.sql 管首页两表）。luffy-vue/ 是无登录功能的旧副本，勿在其上开发。log/ 为运行日志，勿删。

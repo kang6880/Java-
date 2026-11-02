@@ -9,6 +9,7 @@ export default defineConfig({
   plugins: [vue()],
   server: {
     port: 5173,
+    strictPort: true,
     host: true,
     // 开发环境代理：前端请求 /api/** 一律转发到后端，浏览器视角是同源，天然没有跨域问题
     proxy: {
