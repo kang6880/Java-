@@ -125,6 +125,15 @@ function coverBg (i) {
         <div class="story-cover" :style="covers[s.id] ? { backgroundImage: `url(${covers[s.id]})`, backgroundSize: 'cover', backgroundPosition: 'center' } : { background: coverBg(i) }">
           <span v-if="!covers[s.id]" class="story-cover-emoji">{{ s.icon }}</span>
           <span class="story-cover-no">第 {{ i + 1 }} 章</span>
+          <!-- 海浪波纹装饰（无真实封面时增强动漫氛围） -->
+          <svg v-if="!covers[s.id]" class="story-wave" viewBox="0 0 320 60" preserveAspectRatio="none">
+            <path d="M0,32 C40,8 80,52 120,30 C160,10 200,50 240,28 C280,8 300,30 320,20 L320,60 L0,60 Z" fill="rgba(255,255,255,.16)" />
+            <path d="M0,44 C40,24 80,58 120,42 C160,26 200,56 240,40 C280,26 300,42 320,36 L320,60 L0,60 Z" fill="rgba(255,255,255,.10)" />
+          </svg>
+          <span v-if="isBvid(s.video)" class="story-video-badge">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            视频
+          </span>
         </div>
 
         <div class="story-main">
