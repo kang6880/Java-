@@ -234,6 +234,37 @@ LOCK TABLES `sys_user` WRITE;
 INSERT INTO `sys_user` VALUES (1,'路飞','luffy@onepiece.com','$2b$10$izOLX7eLglz39jM2R9IVPekziQOOddxJV47S08pHjRCbOIdbbZRvK','2026-10-29 13:52:50'),(2,'罗宾酱','123456@qq.com','$2a$10$lJc943ntWjkfa1fYaVea3.0AjSwJZSpQ8xIJmXBa1f5PD5.seYusC','2026-10-29 14:08:25'),(3,'温文尔雅','23456@qq.com','$2a$10$QGMOkAYc8hXyd0BKGPDzBOF4Gy5qVdTItPsPjYxGtRXgYGZTDi1aq','2026-11-02 08:57:37'),(5,'猿猴尼卡','1234567@qq.com','$2a$10$87B6PREJmNaGdZXe33klo.JmOTYVYBlOyppVvnctoLncJLVjVeE2a','2026-11-05 14:12:22');
 /*!40000 ALTER TABLE `sys_user` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `home_era`
+--
+
+DROP TABLE IF EXISTS `home_era`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `home_era` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `year` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '时代年份',
+  `title` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '时代标题',
+  `icon` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '?' COMMENT '图标',
+  `color` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '#c0392b' COMMENT '主题色',
+  `description` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '时代描述',
+  `points` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '要点列表(JSON数组)',
+  `sort_no` int NOT NULL DEFAULT '100' COMMENT '排序',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE KEY `uk_era_title` (`title`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC COMMENT='航海王全史时间线';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `home_era`
+--
+
+LOCK TABLES `home_era` WRITE;
+/*!40000 ALTER TABLE `home_era` DISABLE KEYS */;
+INSERT INTO `home_era` VALUES (1,'海圆历 1490 年前后','海贼王哥尔·D·罗杰时代','☠️','#c0392b','哥尔·D·罗杰征服伟大航道，抵达拉夫德鲁，知晓世界的真相，成为史上唯一的海贼王。','["罗杰海贼团完成伟大航道的全程航行，发现 One Piece","罗杰身患绝症，解散海贼团，向海军自首","处刑前留下遗言「想要我的财宝吗？想要的话可以全部给你，去找吧！我把一切都放在那里了」","大海贼时代开启，无数人扬帆出海追寻 One Piece"]',1),(2,'海圆历 1520 年前后','东海的启航','🌊','#2980b9','少年蒙奇·D·路飞吃下橡胶果实，与香克斯立下约定，独自出航，踏上成为海贼王之路。','["路飞吃下橡胶果实，与红发香克斯定下「归还草帽」的约定","先后招募剑士索隆、航海士娜美、狙击手乌索普、厨师山治","在东海击败克里克、阿龙等强敌，救下娜美的故乡可可亚西村","五人草帽海贼团正式成立，向着伟大航道进发"]',2),(3,'海圆历 1521 年','伟大航道前半段','🧭','#16a085','进入伟大航道，结识乔巴、罗宾，历经阿拉巴斯坦、空岛、司法岛等重大冒险。','["在磁鼓岛招募船医乔巴，在阿拉巴斯坦击败七武海克洛克达尔","空岛篇揭示黄金钟与「D」之一族的伏笔","司法岛篇为救罗宾向世界政府宣战，草帽一伙全员悬赏","建造新船「万里阳光号」，弗兰奇与布鲁克加入"]',3),(4,'海圆历 1522 年','顶上战争','⚔️','#8e44ad','为救兄长艾斯，路飞闯入海军本部，引发席卷世界的大战。','["白胡子海贼团与海军本部、七武海全面开战","艾斯为保护路飞牺牲，白胡子战死，新时代开启","路飞在雷利指导下进行两年修行，掌握霸气","香克斯介入，战争落幕"]',4),(5,'海圆历 1524 年','新世界·四皇争霸','👑','#d35400','修行归来的草帽一伙再聚香波地，进入新世界，挑战四皇。','["鱼人岛、庞克哈萨德、德雷斯罗萨，击败多弗朗明哥","路飞成立草帽大船团，成为七武海之外的超新星之首","佐乌、万国篇，向四皇大妈宣战","和之国篇决战凯多，路飞觉醒太阳神尼卡形态"]',5),(6,'现在','最终之岛 · 新时代','🏴‍☠️','#c0392b','通往拉夫德鲁的秘密逐步揭开，One Piece 的真相即将揭晓，大海贼时代迎来终章。','["四皇格局重塑，路飞成为新四皇","乔伊波伊、空白的一百年、D 之一族的真相浮出水面","草帽一伙向最终之岛拉夫德鲁进发","「一个人的梦想只是梦想，一群人的梦想将成为现实」"]',6);
+/*!40000 ALTER TABLE `home_era` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

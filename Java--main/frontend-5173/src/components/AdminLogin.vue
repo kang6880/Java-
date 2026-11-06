@@ -64,6 +64,7 @@ async function onSubmit () {
       </form>
 
       <p class="admin-login-tip">本入口仅对管理员开放，不提供注册功能。</p>
+      <p class="admin-login-demo">演示账号：<code>admin</code>　密码：<code>admin123</code></p>
 
       <button class="admin-back" type="button" @click="emit('back')">← 返回前台首页</button>
     </div>

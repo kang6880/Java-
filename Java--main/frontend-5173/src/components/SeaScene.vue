@@ -54,6 +54,12 @@ const gulls = [
     ></div>
 
     <div class="sun"></div>
+    <!-- 月亮：夜航之月，与月光海面倒影呼应 -->
+    <div class="moon"></div>
+    <div class="moon-glint"></div>
+    <!-- 流星：偶尔划过夜空 -->
+    <div class="meteor m1"></div>
+    <div class="meteor m2"></div>
 
     <div
       v-for="(c, i) in clouds"

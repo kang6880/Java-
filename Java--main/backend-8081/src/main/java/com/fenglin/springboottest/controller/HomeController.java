@@ -3,11 +3,13 @@ package com.fenglin.springboottest.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fenglin.springboottest.common.Result;
 import com.fenglin.springboottest.entity.HomeCrew;
+import com.fenglin.springboottest.entity.HomeEra;
 import com.fenglin.springboottest.entity.HomeRoute;
 import com.fenglin.springboottest.entity.HomeShop;
 import com.fenglin.springboottest.entity.HomeStory;
 import com.fenglin.springboottest.entity.HomeWanted;
 import com.fenglin.springboottest.mapper.HomeCrewMapper;
+import com.fenglin.springboottest.mapper.HomeEraMapper;
 import com.fenglin.springboottest.mapper.HomeRouteMapper;
 import com.fenglin.springboottest.mapper.HomeShopMapper;
 import com.fenglin.springboottest.mapper.HomeStoryMapper;
@@ -43,6 +45,9 @@ public class HomeController {
     /** 首页榜单各取前几名 */
     private static final int TOP_N = 3;
 
+    /** 名册预览（头像墙 / 游戏牌面）取前几名 */
+    private static final int PREVIEW_N = 12;
+
     @Autowired
     private HomeRouteMapper homeRouteMapper;
 
@@ -59,6 +64,9 @@ public class HomeController {
     private HomeStoryMapper homeStoryMapper;
 
     @Autowired
+    private HomeEraMapper homeEraMapper;
+
+    @Autowired
     private UserMapper userMapper;
 
     /* ---------------- 列表接口 ---------------- */
@@ -67,6 +75,30 @@ public class HomeController {
     public Result<List<HomeCrew>> crews() {
         return Result.ok(homeCrewMapper.selectList(
                 new LambdaQueryWrapper<HomeCrew>().orderByAsc(HomeCrew::getSortNo)));
+    }
+
+    /**
+     * 船员名册预览（无需登录）：
+     * 供登录页「草帽一伙头像墙」、首页小游戏牌面等 UI 装饰数据使用，
+     * 避免这些展示数据硬编码在前端，保证「数据全部存于数据库」的单一数据源。
+     * 默认按 sort_no 升序取前 PREVIEW_N 名。
+     */
+    @GetMapping("/crews/preview")
+    public Result<List<HomeCrew>> crewsPreview() {
+        return Result.ok(homeCrewMapper.selectList(
+                new LambdaQueryWrapper<HomeCrew>()
+                        .orderByAsc(HomeCrew::getSortNo)
+                        .last("LIMIT " + PREVIEW_N)));
+    }
+
+    /**
+     * 航海王全史时间线（无需登录）：
+     * 供 /onepiece 展示页读取时代数据，保证内容也存于数据库。
+     */
+    @GetMapping("/eras")
+    public Result<List<HomeEra>> eras() {
+        return Result.ok(homeEraMapper.selectList(
+                new LambdaQueryWrapper<HomeEra>().orderByAsc(HomeEra::getSortNo)));
     }
 
     @GetMapping("/routes")

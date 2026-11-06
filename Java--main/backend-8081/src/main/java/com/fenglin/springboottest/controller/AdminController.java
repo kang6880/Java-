@@ -6,6 +6,7 @@ import com.fenglin.springboottest.common.Result;
 import com.fenglin.springboottest.dto.AdminLoginRequest;
 import com.fenglin.springboottest.entity.AdminUser;
 import com.fenglin.springboottest.entity.HomeCrew;
+import com.fenglin.springboottest.entity.HomeEra;
 import com.fenglin.springboottest.entity.HomeRoute;
 import com.fenglin.springboottest.entity.HomeShop;
 import com.fenglin.springboottest.entity.HomeStory;
@@ -13,6 +14,7 @@ import com.fenglin.springboottest.entity.HomeWanted;
 import com.fenglin.springboottest.exception.BizException;
 import com.fenglin.springboottest.mapper.AdminUserMapper;
 import com.fenglin.springboottest.mapper.HomeCrewMapper;
+import com.fenglin.springboottest.mapper.HomeEraMapper;
 import com.fenglin.springboottest.mapper.HomeRouteMapper;
 import com.fenglin.springboottest.mapper.HomeShopMapper;
 import com.fenglin.springboottest.mapper.HomeStoryMapper;
@@ -77,6 +79,9 @@ public class AdminController {
     private HomeStoryMapper homeStoryMapper;
 
     @Autowired
+    private HomeEraMapper homeEraMapper;
+
+    @Autowired
     private UserMapper userMapper;
 
     /* ==================== 登录 / 退出 ==================== */
@@ -124,6 +129,7 @@ public class AdminController {
         data.put("wantedCount", homeWantedMapper.selectCount(null));
         data.put("shopCount", homeShopMapper.selectCount(null));
         data.put("storyCount", homeStoryMapper.selectCount(null));
+        data.put("eraCount", homeEraMapper.selectCount(null));
         data.put("userCount", userMapper.selectCount(null));
         return Result.ok(data);
     }
@@ -295,6 +301,40 @@ public class AdminController {
             homeStoryMapper.updateById(entity);
         } else {
             homeStoryMapper.insert(entity);
+        }
+    }
+
+    /* ==================== 航海王全史时间线 ==================== */
+
+    @GetMapping("/eras")
+    public Result<Object> listEras() {
+        return Result.ok(homeEraMapper.selectList(
+                new LambdaQueryWrapper<HomeEra>().orderByAsc(HomeEra::getSortNo)));
+    }
+
+    @PostMapping("/eras")
+    public Result<Object> saveEra(@RequestBody HomeEra entity) {
+        upsertEra(entity);
+        return Result.ok(entity);
+    }
+
+    @PutMapping("/eras")
+    public Result<Object> updateEra(@RequestBody HomeEra entity) {
+        upsertEra(entity);
+        return Result.ok(entity);
+    }
+
+    @DeleteMapping("/eras/{id}")
+    public Result<Object> deleteEra(@PathVariable("id") Long id) {
+        homeEraMapper.deleteById(id);
+        return Result.ok();
+    }
+
+    private void upsertEra(HomeEra entity) {
+        if (entity.getId() != null) {
+            homeEraMapper.updateById(entity);
+        } else {
+            homeEraMapper.insert(entity);
         }
     }
 }

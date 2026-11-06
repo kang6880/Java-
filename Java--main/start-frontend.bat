@@ -1,22 +1,23 @@
 @echo off
 rem ============================================================
-rem  ½öÆô¶¯Ç°¶Ë luffy-vue£¨Vite ¿ª·¢·þÎñÆ÷£¬¶Ë¿Ú 5173£©
-rem  node_modules È±Ê§Ê±×Ô¶¯ÓÃ npmmirror ¾µÏñ°²×°ÒÀÀµ
+rem  ä»…å¯åŠ¨å‰ç«¯ luffy-vueï¼ˆVite å¼€å‘æœåŠ¡å™¨ï¼Œç«¯å£ 5173ï¼‰
+rem  node_modules ç¼ºå¤±æ—¶è‡ªåŠ¨ç”¨ npmmirror é•œåƒå®‰è£…ä¾èµ–
 rem ============================================================
-chcp 936 >nul
-title luffy-vue Ç°¶Ë 5173
+chcp 65001 >nul
+title luffy-vue å‰ç«¯ 5173
 cd /d "%~dp0frontend-5173"
 
 if exist "node_modules\" (
-    echo [1/2] ÒÀÀµÒÑ¾ÍÐ÷£¬Ìø¹ý°²×°¡£
+    echo [1/2] ä¾èµ–å·²å°±ç»ªï¼Œè·³è¿‡å®‰è£…ã€‚
 ) else (
-    echo [1/2] node_modules È±Ê§£¬ÕýÔÚ°²×°ÒÀÀµ£¨Ê×´ÎÔ¼ 1-3 ·ÖÖÓ£©...
+    echo [1/2] node_modules ç¼ºå¤±ï¼Œæ­£åœ¨å®‰è£…ä¾èµ–ï¼ˆé¦–æ¬¡çº¦ 1-3 åˆ†é’Ÿï¼‰...
     call npm ci --no-audit --no-fund
     if errorlevel 1 call npm install --no-audit --no-fund
 )
 
-echo [2/2] Æô¶¯ Vite ¿ª·¢·þÎñÆ÷ ...
-echo 8 Ãëºó×Ô¶¯´ò¿ªä¯ÀÀÆ÷£¬¹Ø±Õ±¾´°¿Ú¼´Í£Ö¹Ç°¶Ë¡£
-start "" cmd /c "timeout /t 8 /nobreak >nul && start "" http://localhost:5173"
+echo [2/2] å¯åŠ¨ Vite å¼€å‘æœåŠ¡å™¨ ...
+echo è®¿é—®åœ°å€ï¼šhttp://192.168.68.40:5173
+echo 8 ç§’åŽè‡ªåŠ¨æ‰“å¼€æµè§ˆå™¨ï¼Œå…³é—­æœ¬çª—å£å³åœæ­¢å‰ç«¯ã€‚
+start "" cmd /c "timeout /t 8 /nobreak >nul && start "" http://192.168.68.40:5173"
 call npm run dev -- --strictPort
 pause

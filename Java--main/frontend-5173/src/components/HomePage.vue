@@ -8,6 +8,7 @@ import RoutePanel from './RoutePanel.vue'
 import WantedPanel from './WantedPanel.vue'
 import ShopPanel from './ShopPanel.vue'
 import StoryPanel from './StoryPanel.vue'
+import GamePanel from './GamePanel.vue'
 import OnePieceShow from './OnePieceShow.vue'
 
 const emit = defineEmits(['logout', 'open-admin'])
@@ -23,10 +24,11 @@ const menus = [
   { name: '航线图鉴', comp: 'RoutePanel', icon: '🗺️' },
   { name: '悬赏令', comp: 'WantedPanel', icon: '📜' },
   { name: '杂货小镇', comp: 'ShopPanel', icon: '🏪' },
-  { name: '章节故事', comp: 'StoryPanel', icon: '📖' }
+  { name: '章节故事', comp: 'StoryPanel', icon: '📖' },
+  { name: '娱乐坊', comp: 'GamePanel', icon: '🎲' }
 ]
 const activeMenu = ref('首页')
-const panelMap = { OnePieceShow, CrewPanel, RoutePanel, WantedPanel, ShopPanel, StoryPanel }
+const panelMap = { OnePieceShow, CrewPanel, RoutePanel, WantedPanel, ShopPanel, StoryPanel, GamePanel }
 
 const activePanel = computed(() => {
   const m = menus.find(x => x.name === activeMenu.value)
@@ -249,6 +251,22 @@ function toTop () {
         <p class="home-date">{{ today }} · 晴，适合出航</p>
         <h1 class="home-title">欢迎登船，<em>{{ username }}</em>！</h1>
         <p class="home-sub">世代传承的意志、时代的浪潮、人的梦想 —— 这些都是无法阻挡的。</p>
+
+        <!-- 今日同航船员：名册真实数据头像行 -->
+        <div v-if="summary.topCrews.length" class="voyage-crew">
+          <button
+            v-for="c in summary.topCrews.slice(0, 6)"
+            :key="'vc' + c.id"
+            class="voyage-avatar"
+            type="button"
+            :title="c.name + ' · ' + (c.position || '船员')"
+            @click="openDetail('crew', c)"
+          >
+            <span class="voyage-emoji">{{ c.icon }}</span>
+            <span class="voyage-name">{{ c.name }}</span>
+          </button>
+          <span class="voyage-more" @click="goPanel('船员名册')">全员名册 ›</span>
+        </div>
 
       <div class="search">
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">

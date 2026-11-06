@@ -1,25 +1,25 @@
 @echo off
 rem ============================================================
-rem  ½öÆô¶¯ºó¶Ë springBootTest£¨¶Ë¿Ú 8081£©
-rem  target È±Ê§Ê±×Ô¶¯ÓÃ Maven Wrapper ±àÒë
+rem  ä»…å¯åŠ¨åç«¯ springBootTestï¼ˆç«¯å£ 8081ï¼‰
+rem  target ç¼ºå¤±æ—¶è‡ªåŠ¨ç”¨ Maven Wrapper ç¼–è¯‘
 rem ============================================================
-chcp 936 >nul
-title springBootTest ºó¶Ë 8081
+chcp 65001 >nul
+title springBootTest åç«¯ 8081
 cd /d "%~dp0backend-8081"
 
 if exist "target\springBootTest-0.0.1-SNAPSHOT.jar" (
-    echo [1/2] ÒÑÓĞ±àÒë²úÎï£¬Ìø¹ı±àÒë¡£
+    echo [1/2] å·²æœ‰ç¼–è¯‘äº§ç‰©ï¼Œè·³è¿‡ç¼–è¯‘ã€‚
 ) else (
-    echo [1/2] Î´·¢ÏÖ±àÒë²úÎï£¬¿ªÊ¼±àÒë£¨Ê×´ÎÔ¼ 1-2 ·ÖÖÓ£©...
+    echo [1/2] æœªå‘ç°ç¼–è¯‘äº§ç‰©ï¼Œå¼€å§‹ç¼–è¯‘ï¼ˆé¦–æ¬¡çº¦ 1-2 åˆ†é’Ÿï¼‰...
     call mvnw.cmd -s maven-settings.xml -DskipTests package
     if errorlevel 1 (
-        echo ±àÒëÊ§°Ü£¡Çë¼ì²éÍøÂç»ò maven-settings.xml ÅäÖÃ¡£
+        echo ç¼–è¯‘å¤±è´¥ï¼è¯·æ£€æŸ¥ç½‘ç»œæˆ– maven-settings.xml é…ç½®ã€‚
         pause
         exit /b 1
     )
 )
 
-echo [2/2] Æô¶¯ºó¶Ë API ·şÎñ£ºhttp://localhost:8081£¨¹©Ç°¶Ë /api µ÷ÓÃ£©
-echo ¹Ø±Õ±¾´°¿Ú¼´Í£Ö¹ºó¶Ë¡£
+echo [2/2] å¯åŠ¨åç«¯ API æœåŠ¡ï¼šhttp://192.168.68.40:8081ï¼ˆä¾›å‰ç«¯ /api è°ƒç”¨ï¼‰
+echo å…³é—­æœ¬çª—å£å³åœæ­¢åç«¯ã€‚
 java -jar target\springBootTest-0.0.1-SNAPSHOT.jar --server.port=8081
 pause

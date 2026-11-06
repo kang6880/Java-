@@ -1,12 +1,15 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { homeApi } from '../api/home.js'
 
 /* ============================================================
- * 航海王全史 —— 时间线展示页（无需登录，纯静态叙事）
+ * 航海王全史 —— 时间线展示页（无需登录）
+ * 数据源为数据库 home_era 表（经 /api/home/eras 拉取），
  * 以罗杰时代 → 东海 → 伟大航道 → 顶上战争 → 新世界 → 新时代 为主线
  * ============================================================ */
 
-const eras = [
+/* 静态兜底：接口不可用时仍能展示 */
+const FALLBACK_ERAS = [
   {
     year: '海圆历 1490 年前后',
     title: '海贼王哥尔·D·罗杰时代',
@@ -87,19 +90,50 @@ const eras = [
   }
 ]
 
+const eras = ref(FALLBACK_ERAS)
+
+onMounted(async () => {
+  try {
+    const list = await homeApi.eras()
+    if (Array.isArray(list) && list.length) {
+      eras.value = list.map(e => ({
+        year: e.year,
+        title: e.title,
+        icon: e.icon,
+        color: e.color,
+        desc: e.description,
+        points: parsePoints(e.points)
+      }))
+    }
+  } catch {
+    /* 保留兜底时间线 */
+  }
+})
+
+/** 解析数据库里的 points（JSON 数组字符串） */
+function parsePoints (raw) {
+  if (!raw) return []
+  try {
+    const arr = JSON.parse(raw)
+    return Array.isArray(arr) ? arr : []
+  } catch {
+    return []
+  }
+}
+
 const activeIdx = ref(0)
-const active = computed(() => eras[activeIdx.value])
+const active = computed(() => eras.value[activeIdx.value])
 
 function select (i) {
   activeIdx.value = i
 }
 
 function next () {
-  activeIdx.value = (activeIdx.value + 1) % eras.length
+  activeIdx.value = (activeIdx.value + 1) % eras.value.length
 }
 
 function prev () {
-  activeIdx.value = (activeIdx.value - 1 + eras.length) % eras.length
+  activeIdx.value = (activeIdx.value - 1 + eras.value.length) % eras.value.length
 }
 </script>
 

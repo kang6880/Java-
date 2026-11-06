@@ -23,6 +23,16 @@ export const homeApi = {
     return request('/api/home/crews', { auth: true })
   },
 
+  /** 名册预览（无需登录）：登录页头像墙、游戏牌面等 UI 装饰数据，取前 N 名 */
+  previewCrews () {
+    return request('/api/home/crews/preview')
+  },
+
+  /** 航海王全史时间线（无需登录） */
+  eras () {
+    return request('/api/home/eras')
+  },
+
   /** 航线图鉴 */
   routes () {
     return request('/api/home/routes', { auth: true })

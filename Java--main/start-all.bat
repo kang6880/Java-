@@ -1,11 +1,11 @@
 @echo off
 rem ============================================================
-rem  º½º£ÍõÏîÄ¿ Ò»¼üÆô¶¯£¨×Ô°üº¬°æ£¬²»ÒÀÀµ ps1£©
-rem  Ë«»÷±¾ÎÄ¼þ¼´¿É£ºÊý¾Ý¿â×Ô¼ì -> ºó¶Ë 8081 -> Ç°¶Ë 5173 -> ´ò¿ªä¯ÀÀÆ÷
-rem  Í£Ö¹£ºË«»÷ stop-all.bat
+rem  èˆªæµ·çŽ‹é¡¹ç›® ä¸€é”®å¯åŠ¨ï¼ˆè‡ªåŒ…å«ç‰ˆï¼Œä¸ä¾èµ– ps1ï¼‰
+rem  åŒå‡»æœ¬æ–‡ä»¶å³å¯ï¼šæ•°æ®åº“è‡ªæ£€ -> åŽç«¯ 8081 -> å‰ç«¯ 5173 -> æ‰“å¼€æµè§ˆå™¨
+rem  åœæ­¢ï¼šåŒå‡» stop-all.bat
 rem ============================================================
-chcp 936 >nul
-title º½º£ÍõÏîÄ¿ Ò»¼üÆô¶¯
+chcp 65001 >nul
+title èˆªæµ·çŽ‹é¡¹ç›® ä¸€é”®å¯åŠ¨
 setlocal enabledelayedexpansion
 
 set ROOT=%~dp0
@@ -15,25 +15,25 @@ set MYSQL="C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"
 set JAR=%BACKEND%\target\springBootTest-0.0.1-SNAPSHOT.jar
 
 echo.
-echo ============ [1/4] Êý¾Ý¿â×Ô¼ì ============
+echo ============ [1/4] æ•°æ®åº“è‡ªæ£€ ============
 %MYSQL% -uroot -p123456 -e "USE springboottest; SELECT 1;" >nul 2>&1
 if errorlevel 1 (
-    echo   [¾¯¸æ] ÎÞ·¨Á¬½ÓÊý¾Ý¿â springboottest£¬ÇëÈ·ÈÏ MySQL ÒÑÆô¶¯ÇÒÕËºÅÃÜÂëÕýÈ·¡£
-    echo          ½Å±¾½«¼ÌÐøÆô¶¯ºó¶Ë£¬µ«½Ó¿Ú¿ÉÄÜ±¨Êý¾Ý¿â´íÎó¡£
+    echo   [è­¦å‘Š] æ— æ³•è¿žæŽ¥æ•°æ®åº“ springboottestï¼Œè¯·ç¡®è®¤ MySQL å·²å¯åŠ¨ä¸”è´¦å·å¯†ç æ­£ç¡®ã€‚
+    echo          è„šæœ¬å°†ç»§ç»­å¯åŠ¨åŽç«¯ï¼Œä½†æŽ¥å£å¯èƒ½æŠ¥æ•°æ®åº“é”™è¯¯ã€‚
 ) else (
-    echo   [OK] Êý¾Ý¿â springboottest Á¬½ÓÕý³£¡£
+    echo   [OK] æ•°æ®åº“ springboottest è¿žæŽ¥æ­£å¸¸ã€‚
 )
 
 echo.
-echo ============ [2/4] ºó¶Ë±àÒë¼ì²é ============
+echo ============ [2/4] åŽç«¯ç¼–è¯‘æ£€æŸ¥ ============
 if exist "%JAR%" (
-    echo   [OK] ÒÑÓÐ±àÒë²úÎï£¬Ìø¹ý±àÒë¡£
+    echo   [OK] å·²æœ‰ç¼–è¯‘äº§ç‰©ï¼Œè·³è¿‡ç¼–è¯‘ã€‚
 ) else (
-    echo   [±àÒë] Î´·¢ÏÖ±àÒë²úÎï£¬¿ªÊ¼±àÒë£¨Ê×´ÎÔ¼ 1-2 ·ÖÖÓ£©...
+    echo   [ç¼–è¯‘] æœªå‘çŽ°ç¼–è¯‘äº§ç‰©ï¼Œå¼€å§‹ç¼–è¯‘ï¼ˆé¦–æ¬¡çº¦ 1-2 åˆ†é’Ÿï¼‰...
     pushd "%BACKEND%"
     call mvnw.cmd -s maven-settings.xml -DskipTests package
     if errorlevel 1 (
-        echo   [´íÎó] ºó¶Ë±àÒëÊ§°Ü£¡Çë¼ì²éÍøÂç»ò maven-settings.xml ÅäÖÃ¡£
+        echo   [é”™è¯¯] åŽç«¯ç¼–è¯‘å¤±è´¥ï¼è¯·æ£€æŸ¥ç½‘ç»œæˆ– maven-settings.xml é…ç½®ã€‚
         popd
         pause
         exit /b 1
@@ -42,23 +42,23 @@ if exist "%JAR%" (
 )
 
 echo.
-echo ============ [3/4] Æô¶¯Ç°ºó¶Ë ============
-rem ÏÈÍ£µô¿ÉÄÜ²ÐÁôµÄÍ¬Ãû½ø³Ì£¬±ÜÃâ¶Ë¿ÚÕ¼ÓÃ
+echo ============ [3/4] å¯åŠ¨å‰åŽç«¯ ============
+rem å…ˆåœæŽ‰å¯èƒ½æ®‹ç•™çš„åŒåè¿›ç¨‹ï¼Œé¿å…ç«¯å£å ç”¨
 call "%ROOT%stop-all.bat" >nul 2>&1
 
-echo   Æô¶¯ºó¶Ë£¨¶Ë¿Ú 8081£©...
-start "springBootTest-8081" /min cmd /c "cd /d "%BACKEND%" && java -jar target\springBootTest-0.0.1-SNAPSHOT.jar --server.port=8081"
+echo   å¯åŠ¨åŽç«¯ï¼ˆç«¯å£ 8081ï¼‰...
+start "springBootTest-8081" /min cmd /c "cd /d ""%BACKEND%"" && java -jar target\springBootTest-0.0.1-SNAPSHOT.jar --server.port=8081"
 
-echo   Æô¶¯Ç°¶Ë£¨¶Ë¿Ú 5173£©...
-start "luffy-vue-5173" /min cmd /c "cd /d "%FRONTEND%" && npm run dev -- --strictPort"
+echo   å¯åŠ¨å‰ç«¯ï¼ˆç«¯å£ 5173ï¼‰...
+start "luffy-vue-5173" /min cmd /c "cd /d ""%FRONTEND%"" && npm run dev -- --strictPort"
 
 echo.
-echo ============ [4/4] ½¡¿µ¼ì²é ============
-echo   µÈ´ýºó¶Ë¾ÍÐ÷£¨×î¶à 60 Ãë£©...
+echo ============ [4/4] å¥åº·æ£€æŸ¥ ============
+echo   ç­‰å¾…åŽç«¯å°±ç»ªï¼ˆæœ€å¤š 60 ç§’ï¼‰...
 set READY=0
 for /l %%i in (1,1,30) do (
     timeout /t 2 /nobreak >nul
-    curl -s -o nul http://127.0.0.1:8081/api/home/summary
+    curl -s -o nul http://192.168.68.40:8081/api/home/summary
     if not errorlevel 1 (
         set READY=1
         goto :backend_ok
@@ -66,16 +66,16 @@ for /l %%i in (1,1,30) do (
 )
 :backend_ok
 if "!READY!"=="1" (
-    echo   [OK] ºó¶Ë 8081 ÒÑ¾ÍÐ÷¡£
+    echo   [OK] åŽç«¯ 8081 å·²å°±ç»ªã€‚
 ) else (
-    echo   [ÌáÊ¾] ºó¶ËÈÔÔÚÆô¶¯ÖÐ£¬ÉÔºó»á×Ô¶¯¾ÍÐ÷¡£
+    echo   [æç¤º] åŽç«¯ä»åœ¨å¯åŠ¨ä¸­ï¼Œç¨åŽä¼šè‡ªåŠ¨å°±ç»ªã€‚
 )
 
-echo   µÈ´ýÇ°¶Ë¾ÍÐ÷...
+echo   ç­‰å¾…å‰ç«¯å°±ç»ª...
 set FREADY=0
 for /l %%i in (1,1,20) do (
     timeout /t 1 /nobreak >nul
-    curl -s -o nul http://localhost:5173/
+    curl -s -o nul http://192.168.68.40:5173/
     if not errorlevel 1 (
         set FREADY=1
         goto :front_ok
@@ -83,20 +83,20 @@ for /l %%i in (1,1,20) do (
 )
 :front_ok
 if "!FREADY!"=="1" (
-    echo   [OK] Ç°¶Ë 5173 ÒÑ¾ÍÐ÷¡£
+    echo   [OK] å‰ç«¯ 5173 å·²å°±ç»ªã€‚
 ) else (
-    echo   [ÌáÊ¾] Ç°¶ËÈÔÔÚÆô¶¯ÖÐ¡£
+    echo   [æç¤º] å‰ç«¯ä»åœ¨å¯åŠ¨ä¸­ã€‚
 )
 
 echo.
-echo ============ Æô¶¯Íê³É ============
-echo   Ç°¶Ë·ÃÎÊµØÖ·£ºhttp://localhost:5173
-echo   ºó¶Ë API µØÖ·£ºhttp://127.0.0.1:8081
-echo   ÑÝÊ¾ÕËºÅ£ºÂ··É / 123456
+echo ============ å¯åŠ¨å®Œæˆ ============
+echo   å‰ç«¯è®¿é—®åœ°å€ï¼šhttp://192.168.68.40:5173
+echo   åŽç«¯ API åœ°å€ï¼šhttp://192.168.68.40:8081
+echo   æ¼”ç¤ºè´¦å·ï¼šè·¯é£ž / 123456
 echo.
-echo   ¹Ø±ÕÁ½¸ö×îÐ¡»¯´°¿Ú¼´¿ÉÍ£Ö¹Ç°ºó¶Ë£»»òË«»÷ stop-all.bat Ò»¼üÍ£Ö¹¡£
+echo   å…³é—­ä¸¤ä¸ªæœ€å°åŒ–çª—å£å³å¯åœæ­¢å‰åŽç«¯ï¼›æˆ–åŒå‡» stop-all.bat ä¸€é”®åœæ­¢ã€‚
 echo.
-start "" http://localhost:5173
+start "" http://192.168.68.40:5173
 
 endlocal
 pause

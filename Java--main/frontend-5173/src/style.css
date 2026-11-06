@@ -43,6 +43,40 @@ body{
   animation:sunPulse 7s ease-in-out infinite;
 }
 @keyframes sunPulse{0%,100%{opacity:.75;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.08)}}
+/* ---------- 夜航之月（融合后台登录页的月光氛围） ---------- */
+.moon{
+  position:absolute;top:52px;left:50%;transform:translateX(-50%);
+  width:88px;height:88px;border-radius:50%;
+  background:radial-gradient(circle at 36% 32%,#fff8e1,#f2dfae 55%,#d9bd7e);
+  box-shadow:
+    0 0 34px 10px rgba(255,232,170,.5),
+    0 0 120px 46px rgba(255,224,150,.18);
+  animation:moonFloat 9s ease-in-out infinite;
+}
+@keyframes moonFloat{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-7px)}}
+/* 月光在海面的竖直倒影带 */
+.moon-glint{
+  position:absolute;top:150px;left:50%;transform:translateX(-50%);
+  width:150px;height:46vh;
+  background:linear-gradient(180deg,rgba(255,232,170,.14),rgba(255,232,170,.05) 55%,transparent);
+  clip-path:polygon(38% 0,62% 0,88% 100%,12% 100%);
+  animation:glintSway 8s ease-in-out infinite;
+}
+@keyframes glintSway{0%,100%{opacity:.8;transform:translateX(-50%) skewX(0deg)}50%{opacity:.55;transform:translateX(-50%) skewX(3deg)}}
+/* 流星：划过夜空的长尾光点 */
+.meteor{
+  position:absolute;width:130px;height:1.5px;border-radius:2px;
+  background:linear-gradient(90deg,rgba(255,244,214,.95),rgba(255,244,214,0));
+  opacity:0;transform:rotate(-24deg);
+  animation:meteorFall 11s ease-in infinite;
+}
+.meteor.m1{top:14%;left:62%;animation-delay:3s}
+.meteor.m2{top:8%;left:28%;animation-delay:8.5s;animation-duration:14s}
+@keyframes meteorFall{
+  0%,86%{opacity:0;transform:rotate(-24deg) translateX(0)}
+  90%{opacity:.95}
+  96%,100%{opacity:0;transform:rotate(-24deg) translateX(-340px) translateY(160px)}
+}
 .cloud{
   position:absolute;background:rgba(255,255,255,.10);border-radius:100px;
   animation:drift linear infinite;will-change:transform;
@@ -87,6 +121,29 @@ body{
 @keyframes spin{to{transform:rotate(360deg)}}
 .brand h1{font-size:30px;letter-spacing:3px;line-height:1.35;color:var(--gold);text-shadow:0 2px 10px rgba(0,0,0,.5)}
 .brand h1 small{display:block;font-size:14px;letter-spacing:6px;color:#cfe3f5;margin-bottom:8px;font-weight:400}
+
+/* ---------- 草帽一伙头像墙 ---------- */
+.crew-wall{margin-top:2px}
+.crew-wall-title{font-size:13px;letter-spacing:2px;color:#f2c14e;margin-bottom:12px;opacity:.9}
+.crew-orbit{list-style:none;display:grid;grid-template-columns:repeat(5,1fr);gap:12px 8px}
+.crew-avatar{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  cursor:default;animation:crewBob 4.2s ease-in-out infinite;
+}
+@keyframes crewBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.crew-emoji{
+  width:46px;height:46px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  background:radial-gradient(circle at 32% 28%,rgba(255,240,200,.28),rgba(255,240,200,.06));
+  border:2px solid rgba(242,193,78,.65);
+  box-shadow:0 4px 14px rgba(0,0,0,.35),inset 0 0 10px rgba(242,193,78,.15);
+  transition:transform .25s,box-shadow .25s,border-color .25s;
+}
+.crew-avatar:hover .crew-emoji{
+  transform:scale(1.16);border-color:#f2c14e;
+  box-shadow:0 6px 18px rgba(242,193,78,.4),inset 0 0 12px rgba(242,193,78,.3);
+}
+.crew-name{font-size:11.5px;color:#f7e9cd;letter-spacing:1px;opacity:.88}
 .wanted{
   border:2px dashed rgba(242,193,78,.5);border-radius:12px;padding:14px 16px;
   font-size:13px;line-height:1.9;color:#dbe8f6;background:rgba(0,0,0,.18);
@@ -321,10 +378,59 @@ body{
 .panel-in-col{width:100%;padding:24px 26px 60px;align-items:stretch;text-align:left}
 
 .home-main{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:7vh 20px 60px}
-.home-date{font-size:13px;letter-spacing:2px;color:#9fc0dd;margin-bottom:14px}
+.home-date{font-size:13px;letter-spacing:2px;color:#e6f0fa;margin-bottom:14px;text-shadow:0 1px 6px rgba(4,26,50,.9),0 0 12px rgba(4,26,50,.7)}
+
+/* ---------- 首页 hero 背景：草帽团全家福 ---------- */
+.home-main{
+  position:relative;
+}
+.home-main::before{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:url('/onepiece-crew.jpeg') center 28%/cover no-repeat;
+  opacity:.26;
+  border-radius:18px;
+}
+/* 上下渐变遮罩：保证文字在图片上可读，同时边缘融入夜色 */
+.home-main::after{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:
+    linear-gradient(180deg,rgba(4,26,50,.55) 0%,rgba(4,26,50,.18) 40%,rgba(10,42,77,.85) 100%),
+    radial-gradient(ellipse at 50% 0%,transparent 40%,rgba(5,35,65,.5) 100%);
+  border-radius:18px;
+}
+/* hero 区域所有内容置于遮罩之上 */
+.home-main > *{position:relative;z-index:1}
 .home-title{font-size:40px;letter-spacing:2px;color:#f7e9cd;text-shadow:0 3px 14px rgba(0,0,0,.45);margin-bottom:14px}
 .home-title em{font-style:normal;color:var(--gold)}
 .home-sub{font-size:14px;font-style:italic;color:#cfe3f5;opacity:.85;margin-bottom:38px}
+
+/* ---------- 今日同航船员头像行 ---------- */
+.voyage-crew{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  margin:-14px 0 30px;
+}
+.voyage-avatar{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  border:none;background:transparent;padding:0;cursor:pointer;font-family:inherit;
+}
+.voyage-emoji{
+  width:50px;height:50px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+  background:radial-gradient(circle at 32% 28%,rgba(255,240,200,.22),rgba(255,240,200,.04));
+  border:2px solid rgba(242,193,78,.55);
+  box-shadow:0 4px 14px rgba(0,0,0,.3);
+  transition:transform .25s,box-shadow .25s,border-color .25s;
+}
+.voyage-avatar:hover .voyage-emoji{
+  transform:scale(1.15) translateY(-2px);border-color:var(--gold);
+  box-shadow:0 8px 20px rgba(242,193,78,.4);
+}
+.voyage-name{font-size:11.5px;color:#f7e9cd;letter-spacing:1px;opacity:.85}
+.voyage-more{
+  font-size:12.5px;color:#f2c14e;cursor:pointer;opacity:.85;
+  border-bottom:1px dashed rgba(242,193,78,.5);padding-bottom:2px;
+}
+.voyage-more:hover{opacity:1}
 
 .search{display:flex;align-items:center;width:100%;max-width:640px;height:58px;background:linear-gradient(180deg,#fdf5e6,#f3e3c3);border-radius:29px;padding:0 8px 0 22px;box-shadow:var(--shadow),0 0 0 1px rgba(242,193,78,.35)}
 .search-icon{width:20px;height:20px;color:#b39a72;flex:none}
@@ -594,10 +700,14 @@ body{
 .admin-login-head p{font-size:12px;color:#8a6d4b;margin-top:4px}
 /* 后台登录用静态标签（label 在 input 上方），限定作用域避免覆盖前台浮动 label */
 .admin-login .field{margin-bottom:16px}
-.admin-login .field label{display:block;font-size:12px;color:#8a6d4b;margin-bottom:6px}
+/* 覆盖全局 .field label 的浮动标签样式（position:absolute 会叠在输入框上）：
+   后台登录页使用常规「上方独立标签」布局，必须重置定位 */
+.admin-login .field label{position:static;top:auto;display:block;font-size:12px;color:#8a6d4b;margin-bottom:6px;letter-spacing:0}
 .admin-login .field input{width:100%;height:44px;border:1px solid #e2cfa8;border-radius:10px;padding:0 14px;font-size:14px;color:var(--ink);background:#fffdf7;font-family:inherit;outline:none;transition:border-color .2s}
 .admin-login .field input:focus{border-color:var(--gold)}
 .admin-login-tip{font-size:12px;color:#8a6d4b;text-align:center;margin-top:14px}
+.admin-login-demo{font-size:12px;color:#8a6d4b;text-align:center;margin-top:6px}
+.admin-login-demo code{display:inline-block;padding:1px 7px;border-radius:6px;background:rgba(242,193,78,.22);border:1px solid rgba(184,134,11,.35);color:#7a5a10;font-family:Consolas,Menlo,monospace;font-size:12px}
 .admin-back{display:block;width:100%;margin-top:14px;border:none;background:transparent;color:#8a6d4b;font-size:12px;cursor:pointer;font-family:inherit;text-decoration:underline}
 
 .admin{min-height:100vh;background:linear-gradient(180deg,#08243f 0%,#0a3d6b 60%,#052341 100%)}
@@ -712,3 +822,71 @@ html.page-hidden *::after{
 
 /* 搜索按钮聚焦态 */
 .search-btn:focus-visible,.btn:focus-visible,.back-home:focus-visible,.chip:focus-visible,.tabs button:focus-visible,.side-nav a:focus-visible,.admin-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* ---------- 娱乐坊：恶魔果实记忆配对 ---------- */
+.game-panel{position:relative}
+.game-desc{font-size:13px;color:#cfe3f5;opacity:.85;margin:6px 0 18px}
+.game-hud{
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  font-size:13px;color:#f7e9cd;margin-bottom:16px;
+}
+.game-hud b{color:var(--gold);font-size:15px}
+.game-restart{
+  margin-left:auto;border:1px solid rgba(242,193,78,.55);border-radius:10px;
+  background:rgba(242,193,78,.12);color:var(--gold);font-size:13px;
+  padding:7px 14px;cursor:pointer;font-family:inherit;transition:background .2s,transform .2s;
+}
+.game-restart:hover{background:rgba(242,193,78,.25);transform:translateY(-1px)}
+.game-restart.big{margin:14px auto 0;display:block;font-size:14px;padding:10px 26px}
+.game-board{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px;
+  max-width:520px;
+}
+.game-card{
+  aspect-ratio:3/4;border:none;border-radius:12px;cursor:pointer;
+  position:relative;perspective:600px;font-family:inherit;
+  background:transparent;padding:0;
+}
+.game-card .card-back,.game-card .card-face{
+  position:absolute;inset:0;border-radius:12px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  backface-visibility:hidden;transition:transform .45s;
+}
+.game-card .card-back{
+  font-size:26px;
+  background:linear-gradient(150deg,#0d4c7d,#052341);
+  border:2px solid rgba(242,193,78,.5);
+  box-shadow:0 4px 12px rgba(0,0,0,.35);
+}
+.game-card .card-face{
+  transform:rotateY(180deg);
+  background:linear-gradient(150deg,#fdf5e6,#f3e3c3);
+  border:2px solid rgba(184,134,11,.55);
+}
+.game-card .card-face b{font-size:30px;line-height:1}
+.game-card .card-face small{font-size:11px;color:#7a5a10;letter-spacing:1px}
+.game-card.open .card-back{transform:rotateY(180deg)}
+.game-card.open .card-face{transform:rotateY(0deg)}
+.game-card.done{pointer-events:none}
+.game-card.done .card-back{transform:rotateY(180deg)}
+.game-card.done .card-face{
+  transform:rotateY(0deg);
+  border-color:#2e9e5b;box-shadow:0 0 14px rgba(46,158,91,.5);
+}
+.game-card.open{animation:cardPop .3s ease}
+@keyframes cardPop{50%{transform:scale(1.06)}}
+.game-win{
+  position:fixed;inset:0;z-index:50;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(2,14,30,.6);backdrop-filter:blur(3px);
+}
+.game-win-card{
+  background:linear-gradient(180deg,#fdf5e6,#f3e3c3);
+  border:2px solid rgba(242,193,78,.7);border-radius:18px;
+  padding:30px 40px;text-align:center;color:var(--ink);
+  box-shadow:var(--shadow);animation:cardPop .4s ease;
+}
+.win-icon{font-size:52px}
+.game-win-card h3{font-size:22px;letter-spacing:3px;margin:8px 0 4px;color:#7a5a10}
+.game-win-card p{font-size:13px;color:#8a6d4b}
+.win-stat{margin-top:8px;font-weight:bold;color:#2a1c0e}

@@ -31,7 +31,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginInterceptor)
-                .addPathPatterns(PROTECTED_PATHS);
+                .addPathPatterns(PROTECTED_PATHS)
+                // 名册预览（登录页头像墙、游戏牌面）与全史时间线无需登录即可读取
+                .excludePathPatterns("/api/home/crews/preview", "/api/home/eras");
 
         // 后台接口统一守卫，登录接口自身排除在外
         registry.addInterceptor(adminLoginInterceptor)
