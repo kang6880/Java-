@@ -22,23 +22,43 @@ const shown = computed(() =>
 /* 记录每个篇章的动态封面图 URL（由 bvid 实时拉取） */
 const covers = ref({})
 
+/* 封面拉取结果缓存：同一 bvid 只请求一次，避免反复切换页面重复请求 B 站 */
+const coverCache = new Map()
+
 async function fetchCover (s) {
-  // 有显式 cover 就用；否则若 video 是 bvid，尝试拉 B站真实封面
-  if (s.cover) { covers.value[s.id] = s.cover; return }
-  if (!isBvid(s.video)) return
+  // 有显式 cover 就用
+  if (s.cover) return s.cover
+  if (!isBvid(s.video)) return ''
+  if (coverCache.has(s.video)) return coverCache.get(s.video)
   try {
     const res = await fetch(`https://api.bilibili.com/x/web-interface/view?bvid=${s.video}`)
     const j = await res.json()
     const pic = j?.data?.pic
-    if (pic) covers.value[s.id] = pic.replace(/^http:/, 'https:')
-  } catch { /* 拉取失败则用渐变兜底 */ }
+    const url = pic ? pic.replace(/^http:/, 'https:') : ''
+    coverCache.set(s.video, url)
+    return url
+  } catch {
+    coverCache.set(s.video, '')
+    return ''
+  }
 }
 
+/* 性能优化：并发限制为 4，避免一次性对所有篇章发起请求造成网络拥塞；
+   收集结果后一次性写入 covers（只触发一次响应式更新），而非每篇各更新一次 */
 async function load () {
   loading.value = true
   try {
     list.value = await homeApi.stories()
-    list.value.forEach(s => fetchCover(s))
+    const patch = {}
+    const queue = [...list.value]
+    const worker = async () => {
+      while (queue.length) {
+        const s = queue.shift()
+        patch[s.id] = await fetchCover(s)
+      }
+    }
+    await Promise.all(Array.from({ length: 4 }, worker))
+    covers.value = { ...covers.value, ...patch }
   } finally {
     loading.value = false
   }

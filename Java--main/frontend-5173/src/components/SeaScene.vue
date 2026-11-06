@@ -1,11 +1,16 @@
 <script setup>
-import { ref } from 'vue'
-
-/* 装饰：星空、云、海鸥（随机延迟） */
-const stars = Array.from({ length: 36 }, (_, i) => ({
+/* 装饰：星空、云、海鸥（随机延迟）
+ *
+ * 性能优化：
+ *   - 星星从 36 颗降到 20 颗，动画全部改用 opacity（合成器动画，不触发布局/重绘）；
+ *   - 云层由 blur(2px) 改为纯透明度椭圆（blur 是 GPU 大杀器）；
+ *   - 海鸥从 4 只降到 3 只。
+ * 这些是持续无限循环动画，数量/代价越低，页面越流畅。
+ */
+const stars = Array.from({ length: 20 }, (_, i) => ({
   left: Math.random() * 100,
   top: Math.random() * 55,
-  size: 1 + Math.random() * 2.2,
+  size: 1 + Math.random() * 2,
   delay: -(Math.random() * 6),
   duration: 3 + Math.random() * 4
 }))
@@ -23,7 +28,6 @@ const clouds = [
 const gulls = [
   { top: 70,  size: 11, duration: 26 },
   { top: 110, size: 9,  duration: 34 },
-  { top: 150, size: 13, duration: 30 },
   { top: 200, size: 10, duration: 40 }
 ].map(g => ({
   ...g,

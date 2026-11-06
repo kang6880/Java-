@@ -17,13 +17,13 @@ const username = computed(() => (profile && profile.username) || '船长')
 
 /* ---------- 导航 ---------- */
 const menus = [
-  { name: '首页', comp: null },
-  { name: '航海王全史', comp: 'OnePieceShow' },
-  { name: '船员名册', comp: 'CrewPanel' },
-  { name: '航线图鉴', comp: 'RoutePanel' },
-  { name: '悬赏令', comp: 'WantedPanel' },
-  { name: '杂货小镇', comp: 'ShopPanel' },
-  { name: '章节故事', comp: 'StoryPanel' }
+  { name: '首页', comp: null, icon: '🏠' },
+  { name: '航海王全史', comp: 'OnePieceShow', icon: '🏴‍☠️' },
+  { name: '船员名册', comp: 'CrewPanel', icon: '⚓' },
+  { name: '航线图鉴', comp: 'RoutePanel', icon: '🗺️' },
+  { name: '悬赏令', comp: 'WantedPanel', icon: '📜' },
+  { name: '杂货小镇', comp: 'ShopPanel', icon: '🏪' },
+  { name: '章节故事', comp: 'StoryPanel', icon: '📖' }
 ]
 const activeMenu = ref('首页')
 const panelMap = { OnePieceShow, CrewPanel, RoutePanel, WantedPanel, ShopPanel, StoryPanel }
@@ -146,6 +146,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('keydown', onKeydown)
   window.removeEventListener('scroll', onScroll)
+  if (scrollRaf) cancelAnimationFrame(scrollRaf)
 })
 
 function onKeydown (e) {
@@ -157,8 +158,14 @@ const today = new Date().toLocaleDateString('zh-CN', { month: 'long', day: 'nume
 
 /* 回到顶部按钮：滚动超过一屏才显示 */
 const showTop = ref(false)
+/* 性能优化：滚动事件极高频，用 rAF 节流，只在每帧内合并一次响应式更新 */
+let scrollRaf = null
 function onScroll () {
-  showTop.value = window.scrollY > window.innerHeight * 0.8
+  if (scrollRaf) return
+  scrollRaf = requestAnimationFrame(() => {
+    scrollRaf = null
+    showTop.value = window.scrollY > window.innerHeight * 0.8
+  })
 }
 function toTop () {
   window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -168,11 +175,11 @@ function toTop () {
 <template>
   <SeaScene />
 
-  <div class="home">
-    <!-- 顶部导航栏 -->
-    <nav class="nav">
-      <div class="nav-brand">
-        <svg class="nav-wheel" viewBox="0 0 100 100">
+  <div class="home shell">
+    <!-- ============ 左侧导航栏（参照腾讯视频布局） ============ -->
+    <aside class="sidebar">
+      <div class="side-brand">
+        <svg class="side-wheel" viewBox="0 0 100 100">
           <g stroke="#f2c14e" stroke-width="6" fill="none" stroke-linecap="round">
             <circle cx="50" cy="50" r="38" />
             <circle cx="50" cy="50" r="13" fill="#0b3f6f" />
@@ -184,41 +191,64 @@ function toTop () {
             <path d="M77 23 L59 41" /><path d="M41 59 L23 77" />
           </g>
         </svg>
-        <span class="nav-title">伟大航道</span>
+        <span class="side-title">伟大航道</span>
       </div>
 
-      <ul class="nav-menus">
-        <li v-for="m in menus" :key="m.name">
-          <a href="#" :class="{ active: activeMenu === m.name }" @click.prevent="switchMenu(m.name)">{{ m.name }}</a>
-        </li>
-      </ul>
+      <nav class="side-nav">
+        <a
+          v-for="m in menus"
+          :key="m.name"
+          href="#"
+          :class="{ active: activeMenu === m.name }"
+          @click.prevent="switchMenu(m.name)"
+        >
+          <span class="side-icon">{{ m.icon }}</span>
+          <span class="side-label">{{ m.name }}</span>
+        </a>
+      </nav>
 
-      <div class="nav-user">
-        <button class="nav-admin" type="button" @click="emit('open-admin')">⚙ 后台管理系统</button>
-        <span class="nav-avatar">{{ username.slice(0, 1) }}</span>
-        <span class="nav-name">{{ username }}</span>
-        <button class="nav-exit" :disabled="exiting" @click="logout">退出登船</button>
-      </div>
-    </nav>
-
-    <!-- 各功能页：切换导航时渲染 -->
-    <main v-if="activePanel" class="home-main panel-wrap">
-      <div class="panel-toolbar">
-        <button class="back-home" type="button" @click="switchMenu('首页')">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5" /><path d="M12 19l-7-7 7-7" /></svg>
-          返回首页
+      <div class="side-foot">
+        <button class="side-admin" type="button" @click="emit('open-admin')">
+          <span class="side-icon">⚙️</span>
+          <span class="side-label">后台管理</span>
         </button>
+        <button class="side-exit" :disabled="exiting" @click="logout">退出登船</button>
       </div>
-      <transition name="panel-swap" mode="out-in">
-        <component :is="activePanel" :key="activeMenu" />
-      </transition>
-    </main>
+    </aside>
 
-    <!-- 首页：欢迎语 + 搜索栏 + 展示区 -->
-    <main v-else class="home-main">
-      <p class="home-date">{{ today }} · 晴，适合出航</p>
-      <h1 class="home-title">欢迎登船，<em>{{ username }}</em>！</h1>
-      <p class="home-sub">世代传承的意志、时代的浪潮、人的梦想 —— 这些都是无法阻挡的。</p>
+    <!-- ============ 右侧主区域 ============ -->
+    <div class="main-col">
+      <!-- 顶栏：面包屑（非首页时显示返回首页）+ 用户信息 -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button v-if="activeMenu !== '首页'" class="back-home" type="button" @click="switchMenu('首页')">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5" /><path d="M12 19l-7-7 7-7" /></svg>
+            返回首页
+          </button>
+          <span class="topbar-crumb">
+            <template v-if="activeMenu !== '首页'"> / {{ activeMenu }}</template>
+            <template v-else>⛵ {{ username }}，欢迎回来</template>
+          </span>
+        </div>
+        <div class="topbar-user">
+          <span class="nav-avatar">{{ username.slice(0, 1) }}</span>
+          <span class="nav-name">{{ username }}</span>
+          <button class="nav-exit" :disabled="exiting" @click="logout">退出</button>
+        </div>
+      </header>
+
+      <!-- 各功能页：切换导航时渲染 -->
+      <main v-if="activePanel" class="home-main panel-wrap panel-in-col">
+        <transition name="panel-swap" mode="out-in">
+          <component :is="activePanel" :key="activeMenu" />
+        </transition>
+      </main>
+
+      <!-- 首页：欢迎语 + 搜索栏 + 展示区 -->
+      <main v-else class="home-main">
+        <p class="home-date">{{ today }} · 晴，适合出航</p>
+        <h1 class="home-title">欢迎登船，<em>{{ username }}</em>！</h1>
+        <p class="home-sub">世代传承的意志、时代的浪潮、人的梦想 —— 这些都是无法阻挡的。</p>
 
       <div class="search">
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -426,6 +456,8 @@ function toTop () {
         </div>
       </template>
     </main>
+
+    </div><!-- /main-col -->
 
     <!-- 详情弹窗 -->
     <transition name="pop">
